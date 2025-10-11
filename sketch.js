@@ -1,12 +1,11 @@
 // L-System variables
-let axiom = 'F-F-F-F'; // The starting point (a square)
-let sentence = axiom;   // The sentence that will grow and be drawn
-let len = 100;          // The initial length of 'F'
-let angle;              // The angle for '+' and '-' turns
+let axiom = 'F-F-F-F';
+let sentence = axiom;
+let len = 100;
+let angle;
 
-// The rule for how 'F' expands
 const rules = {
-	F: 'F-F+F+FF-F-F+F'
+  F: 'F-F+F+FF-F-F+F'
 };
 
 // The setup function runs once when the sketch starts
@@ -14,41 +13,59 @@ function setup() {
 	createCanvas(600, 600);
 	background(50);
 	angle = radians(90); // Set the angle to 90 degrees in radians
-
-	// Let's see what the L-system produces!
-	console.log('Generation 0: ' + sentence);
-	generate();
-	console.log('Generation 1: ' + sentence);
-	generate();
-	console.log('Generation 2: ' + sentence);
+	// The generate() function is not needed for this step,
+	// as we are just drawing the initial axiom.
 }
 
-// This function generates the next iteration of the sentence
-function generate() {
-	let nextSentence = ''; // Start with an empty next sentence
+// This function tells the turtle how to draw based on the sentence
+function turtle() {
+  // Loop through every character in the current sentence
+  for (let i = 0; i < sentence.length; i++) {
+    const current = sentence.charAt(i);
 
-	// Loop through every character in the current sentence
+    // Check what the current character is and act accordingly
+    if (current == 'F') {
+      // 'F' means draw a line forward
+      line(0, 0, 0, -len); // Draw the line
+      translate(0, -len);  // Move the turtle to the end of the line
+    } else if (current == '+') {
+      // '+' means turn right (positive rotation)
+      rotate(angle);
+    } else if (current == '-') {
+      // '-' means turn left (negative rotation)
+      rotate(-angle);
+    }
+  }
+}
+
+// The draw function runs in a loop
+function draw() {
+	background(50); // Redraw background each frame
+	stroke(255);    // Set the line color to white
+	strokeWeight(2); // Make the lines a bit thicker
+
+	// We need to reset the drawing state and move to a starting position
+	// each time draw() is called.
+	resetMatrix();
+	translate(width - 150, height - 150); // Move the starting point
+
+	// Call the turtle function to draw the current sentence
+	turtle();
+}
+
+// The generate function is still here, we will use it in the next step
+function generate() {
+	let nextSentence = '';
 	for (let i = 0; i < sentence.length; i++) {
 		const current = sentence.charAt(i);
 		let found = false;
-		
-		// If the current character is 'F', apply the rule
 		if (current == 'F') {
 			nextSentence += rules.F;
 			found = true;
 		}
-
-		// If it's not 'F' (like '+' or '-'), just copy it as is
 		if (!found) {
 			nextSentence += current;
 		}
 	}
-	// Replace the old sentence with the new, longer one
 	sentence = nextSentence;
-}
-
-
-// The draw function is not used yet, but p5.js needs it to run
-function draw() {
-	// We'll add drawing code here in the next subtask
 }
