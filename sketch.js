@@ -1,71 +1,79 @@
 // L-System variables
 let axiom = 'F-F-F-F';
 let sentence = axiom;
-let len = 100;
+let len = 400; // Start with a large length
 let angle;
+let generation = 0; // Keep track of the current generation
 
 const rules = {
-  F: 'F-F+F+FF-F-F+F'
+  F: 'F-FF--F-F'
 };
 
 // The setup function runs once when the sketch starts
 function setup() {
 	createCanvas(600, 600);
-	background(50);
-	angle = radians(90); // Set the angle to 90 degrees in radians
-	// The generate() function is not needed for this step,
-	// as we are just drawing the initial axiom.
+	angle = radians(90);
+	
+	// Create a button to generate the next iteration
+	const button = createButton('Generate Next');
+	button.mousePressed(generate);
+	
+	drawFractal(); // Initial draw
+}
+
+// This function generates the next iteration of the sentence
+function generate() {
+	len /= 2; // Shrink the length for the next iteration
+	generation++;
+	let nextSentence = '';
+
+	for (let i = 0; i < sentence.length; i++) {
+		const current = sentence.charAt(i);
+		if (current == 'F') {
+			nextSentence += rules.F;
+		} else {
+			nextSentence += current;
+		}
+	}
+	sentence = nextSentence;
+	drawFractal(); // Redraw with the new sentence
 }
 
 // This function tells the turtle how to draw based on the sentence
 function turtle() {
-  // Loop through every character in the current sentence
   for (let i = 0; i < sentence.length; i++) {
     const current = sentence.charAt(i);
 
-    // Check what the current character is and act accordingly
     if (current == 'F') {
-      // 'F' means draw a line forward
-      line(0, 0, 0, -len); // Draw the line
-      translate(0, -len);  // Move the turtle to the end of the line
+      line(0, 0, 0, -len);
+      translate(0, -len);
     } else if (current == '+') {
-      // '+' means turn right (positive rotation)
       rotate(angle);
     } else if (current == '-') {
-      // '-' means turn left (negative rotation)
       rotate(-angle);
     }
   }
 }
 
-// The draw function runs in a loop
-function draw() {
-	background(50); // Redraw background each frame
-	stroke(255);    // Set the line color to white
-	strokeWeight(2); // Make the lines a bit thicker
+// Central function to handle all the drawing logic
+function drawFractal() {
+	background(50);
+	fill(255);
+	noStroke();
+	text('Generation: ' + generation, 10, 20); // Display current generation
+	
+	stroke(255);
+	strokeWeight(1.5);
 
-	// We need to reset the drawing state and move to a starting position
-	// each time draw() is called.
 	resetMatrix();
-	translate(width - 150, height - 150); // Move the starting point
-
-	// Call the turtle function to draw the current sentence
-	turtle();
+	// This starting position works well to keep the shape centered
+	translate(500, 500); 
+	
+	turtle(); // Draw the fractal
 }
 
-// The generate function is still here, we will use it in the next step
-function generate() {
-	let nextSentence = '';
-	for (let i = 0; i < sentence.length; i++) {
-		const current = sentence.charAt(i);
-		let found = false;
-		if (current == 'F') {
-			nextSentence += rules.F;
-			found = true;
-		}
-		if (!found) {
-			nextSentence += current;
-		}
-	}
-	sentence = nextSentence;
+// The draw function is not used in this version because we are
+// only redrawing when the button is pressed.
+function draw() {
+	noLoop(); // Stop p5.js from looping the draw() function
 }
