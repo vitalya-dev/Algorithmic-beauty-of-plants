@@ -1,0 +1,24 @@
+{
+  "name": "algorithmic-beauty-of-plants",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vitalya-dev/Algorithmic-beauty-of-plants.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vitalya-dev/Algorithmic-beauty-of-plants/issues"
+  },
+  "homepage": "https://github.com/vitalya-dev/Algorithmic-beauty-of-plants#readme",
+  "dependencies": {
+    "p5": "^2.0.5"
+  }
+}
