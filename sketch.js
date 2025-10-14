@@ -1,22 +1,21 @@
 // L-System variables
-let axiom = 'F';
+let axiom = 'X';
 let sentence = axiom;
 let len = 150; 
 let angle;
 let generation = 0;
 
-// Note the new rule with branching symbols '[' and ']'
+// A more complex, organic set of rules
 const rules = {
-	F: 'F[+F]F[-F]F'
+	X: 'F+[[X]-X]-F[-FX]+X',
+	F: 'FF'
 };
 
 // The setup function runs once when the sketch starts
 function setup() {
 	createCanvas(600, 600);
-	// Using a smaller angle for more plant-like growth
 	angle = radians(25);
 	
-	// Create a button to generate the next iteration
 	const button = createButton('Generate Next');
 	button.mousePressed(generate);
 	
@@ -25,16 +24,17 @@ function setup() {
 
 // This function generates the next iteration of the sentence
 function generate() {
-	// Let's use a multiplier to shrink the length
-	len *= 0.5; 
+	len *= 0.55; // We can fine-tune this multiplier for best results
 	generation++;
 	let nextSentence = '';
 
 	for (let i = 0; i < sentence.length; i++) {
 		const current = sentence.charAt(i);
-		if (current == 'F') {
-			nextSentence += rules.F;
+		// Check if the current character has a rule in our rules object
+		if (rules.hasOwnProperty(current)) {
+			nextSentence += rules[current];
 		} else {
+			// If no rule, just keep the character as is (e.g., for '+', '-', '[', ']')
 			nextSentence += current;
 		}
 	}
@@ -43,6 +43,7 @@ function generate() {
 }
 
 // This function tells the turtle how to draw based on the sentence
+// NOTE: No changes are needed here! The turtle automatically ignores 'X'.
 function turtle() {
 	for (let i = 0; i < sentence.length; i++) {
 		const current = sentence.charAt(i);
@@ -55,9 +56,9 @@ function turtle() {
 		} else if (current == '-') {
 			rotate(-angle);
 		} else if (current == '[') {
-			push(); // Save the current transformation state
+			push();
 		} else if (current == ']') {
-			pop();  // Restore the previous transformation state
+			pop();
 		}
 	}
 }
@@ -73,7 +74,6 @@ function drawFractal() {
 	strokeWeight(1.5);
 
 	resetMatrix();
-	// Start drawing from the bottom-middle of the canvas
 	translate(width / 2, height); 
 	
 	turtle(); // Draw the fractal
@@ -81,5 +81,5 @@ function drawFractal() {
 
 // The draw function is not used in this version
 function draw() {
-	noLoop(); // Stop p5.js from looping the draw() function
+	noLoop();
 }
