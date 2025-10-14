@@ -1,11 +1,12 @@
 // L-System variables
 let axiom = 'X';
 let sentence = axiom;
-let len = 150; 
+let len = 150;
 let angle;
 let generation = 0;
+// We will manage this variable inside the turtle function
+let strokeWidth; 
 
-// A more complex, organic set of rules
 const rules = {
 	X: 'F+[[X]-X]-F[-FX]+X',
 	F: 'FF'
@@ -24,17 +25,16 @@ function setup() {
 
 // This function generates the next iteration of the sentence
 function generate() {
-	len *= 0.55; // We can fine-tune this multiplier for best results
+	len *= 0.55;
 	generation++;
+	// The logic for strokeWidth is no longer needed here.
+	
 	let nextSentence = '';
-
 	for (let i = 0; i < sentence.length; i++) {
 		const current = sentence.charAt(i);
-		// Check if the current character has a rule in our rules object
 		if (rules.hasOwnProperty(current)) {
 			nextSentence += rules[current];
 		} else {
-			// If no rule, just keep the character as is (e.g., for '+', '-', '[', ']')
 			nextSentence += current;
 		}
 	}
@@ -43,12 +43,13 @@ function generate() {
 }
 
 // This function tells the turtle how to draw based on the sentence
-// NOTE: No changes are needed here! The turtle automatically ignores 'X'.
 function turtle() {
 	for (let i = 0; i < sentence.length; i++) {
 		const current = sentence.charAt(i);
 
 		if (current == 'F') {
+			// Set the stroke weight for this specific line segment
+			strokeWeight(strokeWidth);
 			line(0, 0, 0, -len);
 			translate(0, -len);
 		} else if (current == '+') {
@@ -56,9 +57,13 @@ function turtle() {
 		} else if (current == '-') {
 			rotate(-angle);
 		} else if (current == '[') {
-			push();
+			push(); // Save position and angle
+			// Make the lines for the new branch thinner
+			strokeWidth *= 0.7; 
 		} else if (current == ']') {
-			pop();
+			// Restore the thickness for the parent branch
+			strokeWidth /= 0.7; 
+			pop();  // Restore position and angle
 		}
 	}
 }
@@ -68,10 +73,12 @@ function drawFractal() {
 	background(50);
 	fill(255);
 	noStroke();
-	text('Generation: ' + generation, 10, 20);
+	text('Generation: ' - + generation, 10, 20);
 	
 	stroke(255);
-	strokeWeight(1.5);
+	
+	// Reset the strokeWidth to its thickest value before each full redraw
+	strokeWidth = 4;
 
 	resetMatrix();
 	translate(width / 2, height); 
