@@ -14,7 +14,9 @@ const rules = {
 
 // The setup function runs once when the sketch starts
 function setup() {
-	createCanvas(600, 600);
+	// MODIFIED: Added WEBGL to enable 3D mode
+	createCanvas(600, 600, WEBGL); 
+	
 	angle = radians(25);
 	
 	const button = createButton('Generate Next');
@@ -27,7 +29,6 @@ function setup() {
 function generate() {
 	len *= 0.55;
 	generation++;
-	// The logic for strokeWidth is no longer needed here.
 	
 	let nextSentence = '';
 	for (let i = 0; i < sentence.length; i++) {
@@ -48,20 +49,17 @@ function turtle() {
 		const current = sentence.charAt(i);
 
 		if (current == 'F') {
-			// Set the stroke weight for this specific line segment
 			strokeWeight(strokeWidth);
-			line(0, 0, 0, -len);
-			translate(0, -len);
+			line(0, 0, 0, 0, -len, 0); // Note: line() in 3D takes 6 arguments
+			translate(0, -len, 0);
 		} else if (current == '+') {
-			rotate(angle);
+			rotateZ(angle);
 		} else if (current == '-') {
-			rotate(-angle);
+			rotateZ(-angle);
 		} else if (current == '[') {
 			push(); // Save position and angle
-			// Make the lines for the new branch thinner
 			strokeWidth *= 0.7; 
 		} else if (current == ']') {
-			// Restore the thickness for the parent branch
 			strokeWidth /= 0.7; 
 			pop();  // Restore position and angle
 		}
@@ -71,17 +69,23 @@ function turtle() {
 // Central function to handle all the drawing logic
 function drawFractal() {
 	background(50);
-	fill(255);
-	noStroke();
-	text('Generation: ' - + generation, 10, 20);
+	resetMatrix();
+	translate(0, 300 , 0); 
+
+	
+	// The text display part is a bit trickier in WEBGL, so we'll comment it out for now.
+	// fill(255);
+	// noStroke();
+	// text('Generation: ' - + generation, 10, 20);
 	
 	stroke(255);
 	
-	// Reset the strokeWidth to its thickest value before each full redraw
 	strokeWidth = 4;
 
-	resetMatrix();
-	translate(width / 2, height); 
+	// In 3D, we don't need to resetMatrix() or translate to the bottom center
+	// The orbitControl centers the view for us.
+	// resetMatrix();
+	// translate(width / 2, height); 
 	
 	turtle(); // Draw the fractal
 }
