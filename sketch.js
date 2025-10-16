@@ -1,79 +1,40 @@
-// Constants for the Honda tree model from the book
-const r1 = 0.9; // Contraction ratio for the trunk
-const r2 = 0.9; // Contraction ratio for branches
-const a0 = 45;  // Branching angle from the trunk
-const a2 = 45;  // Branching angle for lateral axes
-const s = 137.5; // Divergence angle
-const wr = 0.707; // Width decrease rate
-
-// The axiom is an array of objects
-let axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
-let sentence = axiom;
-let generation = 0;
-
-// Rules are functions that return arrays of new module objects.
-const rules = {
-	A: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '&', params: [a0] }, { char: 'B', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: '/', params: [s] }, { char: 'A', params: [l * r1, w * wr] }
-	],
-	B: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '-', params: [a2] }, { char: '$' }, { char: 'C', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: 'C', params: [l * r1, w * wr] }
-	],
-	C: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '+', params: [a2] }, { char: '$' }, { char: 'B', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: 'B', params: [l * r1, w * wr] }
-	]
-};
+// A variable to hold the sequence of drawing commands.
+let sentence;
 
 function setup() {
 	createCanvas(600, 600, WEBGL);
-	const button = createButton('Generate Next');
-	button.mousePressed(generate);
-	drawFractal();
+	//debugMode()
+	// This is our test sentence to draw a square using Yaw turns.
+	// F: Draw forward
+	// +: Turn right (Yaw) 90 degrees
+	sentence = [
+		{ char: '!', params: [3] },      // Set line width to 3
+		{ char: 'F', params: [150] },    // Forward 150
+		{ char: '+', params: [90] },     // Turn right 90 degrees
+		{ char: 'F', params: [150] },    // Forward 150
+		{ char: '+', params: [90] },     // Turn right 90 degrees
+		{ char: 'F', params: [150] },    // Forward 150
+		{ char: '-', params: [90] },     // Turn right 90 degrees
+		{ char: 'F', params: [150] }     // Forward 150
+	];
 }
 
-function generate() {
-	generation++;
-	let nextSentence = [];
-	
-	for (const module of sentence) {
-		const rule = rules[module.char];
-		if (rule) {
-			const newModules = rule(...module.params);
-			nextSentence.push(...newModules);
-		} else {
-			nextSentence.push(module);
-		}
-	}
-	sentence = nextSentence;
-
-	// ADDED: Debug message to see the sentence in the console
-	console.log(`Generation ${generation}:`, sentence); 
-	
-	drawFractal(); 
-}
-
-// NEW: The turtle function is now fully implemented for 3D!
+// Interprets the 'sentence' array and draws the corresponding 3D graphics.
 function turtle() {
 	for (const module of sentence) {
 		switch (module.char) {
 			case '!': // Set line width
 				strokeWeight(module.params[0]);
 				break;
-			case 'F': // Move forward along the turtle's heading (now the Z-axis)
+			case 'F': // Move forward and draw a line
 				line(0, 0, 0, 0, 0, -module.params[0]);
 				translate(0, 0, -module.params[0]);
 				break;
 			case '+': // Turn Right (Yaw) -> Rotates around turtle's Up (Y-axis)
-				rotateY(radians(module.params[0]));
+				rotateY(radians(-module.params[0]));
 				break;
 			case '-': // Turn Left (Yaw) -> Rotates around turtle's Up (Y-axis)
-				rotateY(radians(-module.params[0]));
+				rotateY(radians(module.params[0]));
 				break;
 			case '&': // Pitch Down -> Rotates around turtle's Left (X-axis)
 				rotateX(radians(module.params[0]));
@@ -90,32 +51,31 @@ function turtle() {
 			case '$': // Roll 180 degrees
 				rotateZ(radians(180));
 				break;
-			case '[': // Push state
+			case '[': // Push the current transformation matrix onto the stack
 				push();
 				break;
-			case ']': // Pop state
+			case ']': // Pop the current transformation matrix from the stack
 				pop();
 				break;
 		}
 	}
 }
 
-
+// Sets up the 3D scene and calls the turtle to draw.
 function drawFractal() {
 	background(50);
+	
+	// Use orbitControl for interactive camera
+	orbitControl();
+	
+	// We reset the matrix and draw the turtle at the center of the world
 	resetMatrix();
-	
-	// Since the tree now "grows" along the Z-axis (forward), we need to
-	// rotate the whole scene so we can see it standing up.
-	// 1. Move the starting point down.
-	translate(0, 200, 0); 
-	// 2. Rotate it 90 degrees to make it stand up vertically.
-	rotateX(radians(-90)); 
-	
 	stroke(255);
 	turtle();
 }
 
+// The draw loop now continuously calls drawFractal to update the scene
+// and listen for orbitControl inputs.
 function draw() {
-	noLoop();
+	drawFractal();
 }
