@@ -1,6 +1,6 @@
 // Constants for the Honda tree model from the book
 const r1 = 0.9; // Contraction ratio for the trunk
-const r2 = 0.6; // Contraction ratio for branches
+const r2 = 0.9; // Contraction ratio for branches
 const a0 = 45;  // Branching angle from the trunk
 const a2 = 45;  // Branching angle for lateral axes
 const s = 137.5; // Divergence angle
@@ -65,27 +65,26 @@ function turtle() {
 			case '!': // Set line width
 				strokeWeight(module.params[0]);
 				break;
-			case 'F': // Move forward and draw a line
-				// Y is the 'up' direction in p5.js 3D, so we move along negative Y
-				line(0, 0, 0, 0, -module.params[0], 0);
-				translate(0, -module.params[0], 0);
+			case 'F': // Move forward along the turtle's heading (now the Z-axis)
+				line(0, 0, 0, 0, 0, -module.params[0]);
+				translate(0, 0, -module.params[0]);
 				break;
-			case '+': // Turn Right (Yaw)
+			case '+': // Turn Right (Yaw) -> Rotates around turtle's Up (Y-axis)
 				rotateY(radians(module.params[0]));
 				break;
-			case '-': // Turn Left (Yaw)
+			case '-': // Turn Left (Yaw) -> Rotates around turtle's Up (Y-axis)
 				rotateY(radians(-module.params[0]));
 				break;
-			case '&': // Pitch Down
+			case '&': // Pitch Down -> Rotates around turtle's Left (X-axis)
 				rotateX(radians(module.params[0]));
 				break;
-			case '^': // Pitch Up
+			case '^': // Pitch Up -> Rotates around turtle's Left (X-axis)
 				rotateX(radians(-module.params[0]));
 				break;
-			case '/': // Roll Right
+			case '/': // Roll Right -> Rotates around turtle's Heading (Z-axis)
 				rotateZ(radians(module.params[0]));
 				break;
-			case '\\': // Roll Left
+			case '\\': // Roll Left -> Rotates around turtle's Heading (Z-axis)
 				rotateZ(radians(-module.params[0]));
 				break;
 			case '$': // Roll 180 degrees
@@ -105,8 +104,13 @@ function turtle() {
 function drawFractal() {
 	background(50);
 	resetMatrix();
-	translate(0, 200, 0);
-	rotateX(radians(-30));
+	
+	// Since the tree now "grows" along the Z-axis (forward), we need to
+	// rotate the whole scene so we can see it standing up.
+	// 1. Move the starting point down.
+	translate(0, 200, 0); 
+	// 2. Rotate it 90 degrees to make it stand up vertically.
+	rotateX(radians(-90)); 
 	
 	stroke(255);
 	turtle();
