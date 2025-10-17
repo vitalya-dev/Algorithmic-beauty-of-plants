@@ -2,7 +2,7 @@
 const r1 = 0.9; // Contraction ratio for the trunk
 const r2 = 0.9; // Contraction ratio for branches
 const a0 = 45;  // Branching angle from the trunk
-const a2 = 45;  // Branching angle for lateral axes
+const a2 = 60;  // Branching angle for lateral axes
 const s = 137.5; // Divergence angle
 const wr = 0.707; // Width decrease rate
 
@@ -58,33 +58,32 @@ function generate() {
 	drawFractal(); 
 }
 
-// NEW: The turtle function is now fully implemented for 3D!
 function turtle() {
 	for (const module of sentence) {
 		switch (module.char) {
 			case '!': // Set line width
 				strokeWeight(module.params[0]);
 				break;
-			case 'F': // Move forward along the turtle's heading (now the Z-axis)
+			case 'F': // Move forward and draw a line
 				line(0, 0, 0, 0, 0, -module.params[0]);
 				translate(0, 0, -module.params[0]);
 				break;
-			case '+': // Turn Right (Yaw) -> Rotates around turtle's Up (Y-axis)
-				rotateY(radians(module.params[0]));
-				break;
-			case '-': // Turn Left (Yaw) -> Rotates around turtle's Up (Y-axis)
+			case '+': // Turn Right (Yaw)
 				rotateY(radians(-module.params[0]));
 				break;
-			case '&': // Pitch Down -> Rotates around turtle's Left (X-axis)
+			case '-': // Turn Left (Yaw)
+				rotateY(radians(module.params[0]));
+				break;
+			case '&': // Pitch Down
 				rotateX(radians(module.params[0]));
 				break;
-			case '^': // Pitch Up -> Rotates around turtle's Left (X-axis)
+			case '^': // Pitch Up
 				rotateX(radians(-module.params[0]));
 				break;
-			case '/': // Roll Right -> Rotates around turtle's Heading (Z-axis)
+			case '/': // Roll Right
 				rotateZ(radians(module.params[0]));
 				break;
-			case '\\': // Roll Left -> Rotates around turtle's Heading (Z-axis)
+			case '\\': // Roll Left
 				rotateZ(radians(-module.params[0]));
 				break;
 			case '$': // Roll 180 degrees
@@ -99,6 +98,7 @@ function turtle() {
 		}
 	}
 }
+
 
 
 function drawFractal() {
