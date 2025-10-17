@@ -3,22 +3,30 @@ let sentence;
 function setup() {
 	createCanvas(600, 600, WEBGL);
 	
-	// Test sentence for Pitch: F&F&F&F
+	// Test sentence for Roll: F [ / & F ] [ \ & F ]
 	// F: Draw forward
-	// &: Pitch down 90 degrees
+	// [: Push state
+	// ]: Pop state
+	// /: Roll right
+	// \: Roll left
+	// &: Pitch down
 	sentence = [
 		{ char: '!', params: [3] },      // Set line width
-		{ char: 'F', params: [150] },    // Forward 150
-		{ char: '&', params: [90] },     // Pitch down 90 degrees
-		{ char: 'F', params: [150] },    // Forward 150
-		{ char: '&', params: [90] },     // Pitch down 90 degrees
-		{ char: 'F', params: [150] },    // Forward 150
-		{ char: '&', params: [90] },     // Pitch down 90 degrees
-		{ char: 'F', params: [150] }     // Forward 150
+		{ char: 'F', params: [100] },    // Draw a central stem
+		{ char: '[' },                   // Save state at the end of the stem
+		{ char: '/', params: [45] },     // Roll right 45 degrees
+		{ char: '&', params: [45] },     // Pitch down 45 degrees
+		{ char: 'F', params: [80] },     // Draw first branch
+		{ char: ']' },                   // Restore state
+		{ char: '[' },                   // Save state again
+		{ char: '\\', params: [45] },    // Roll left 45 degrees
+		{ char: '&', params: [45] },     // Pitch down 45 degrees
+		{ char: 'F', params: [80] },     // Draw second branch
+		{ char: ']' }                    // Restore state
 	];
 }
 
-// Your corrected turtle function!
+// Your corrected turtle function
 function turtle() {
 	for (const module of sentence) {
 		switch (module.char) {
