@@ -1,61 +1,47 @@
-// Constants for the Honda tree model from the book
-const r1 = 0.9; // Contraction ratio for the trunk
-const r2 = 0.9; // Contraction ratio for branches
-const a0 = 45;  // Branching angle from the trunk
-const a2 = 60;  // Branching angle for lateral axes
-const s = 137.5; // Divergence angle
-const wr = 0.707; // Width decrease rate
+// Constants for the 3D Hilbert curve
+const delta = 90; // Branching angle (δ)
+let n = 2; // Number of generations (will be controlled by button)
+let len = 50; // Initial segment length
 
-// The axiom is an array of objects
-let axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
+// The axiom is a simple string
+let axiom = 'A';
 let sentence = axiom;
 let generation = 0;
 
-// Rules are functions that return arrays of new module objects.
+// Rules are now string replacements
 const rules = {
-	A: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '&', params: [a0] }, { char: 'B', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: '/', params: [s] }, { char: 'A', params: [l * r1, w * wr] }
-	],
-	B: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '-', params: [a2] }, { char: '$' }, { char: 'C', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: 'C', params: [l * r1, w * wr] }
-	],
-	C: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '+', params: [a2] }, { char: '$' }, { char: 'B', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: 'B', params: [l * r1, w * wr] }
-	]
+  'A': 'B-F+CFC+F-D&F^D-F+&&CFC+F+B//',
+  'B': 'A&F^CFB^F^D^^-F-D^|F^B|FC^F^A//',
+  'C': '|D^|F^B-F+C^F^A&&FA&F^C+F+B^F^D//',
+  'D': '|CFB-F+B|FA&F^A&&FB-F+B|FC//'
 };
 
 function setup() {
-	createCanvas(600, 600, WEBGL);
-	const button = createButton('Generate Next');
-	button.mousePressed(generate);
-	drawFractal();
+  createCanvas(600, 600, WEBGL);
+  const button = createButton('Generate Next');
+  button.mousePressed(generate);
+  drawFractal();
 }
 
 function generate() {
-	generation++;
-	let nextSentence = [];
-	
-	for (const module of sentence) {
-		const rule = rules[module.char];
-		if (rule) {
-			const newModules = rule(...module.params);
-			nextSentence.push(...newModules);
-		} else {
-			nextSentence.push(module);
-		}
-	}
-	sentence = nextSentence;
+  generation++;
+  let nextSentence = '';
+  
+  for (let i = 0; i < sentence.length; i++) {
+    const char = sentence.charAt(i);
+    const rule = rules[char];
+    if (rule) {
+      nextSentence += rule;
+    } else {
+      nextSentence += char; // Keep symbols like F, +, -, etc.
+    }
+  }
+  sentence = nextSentence;
+  
+  // We'll adjust length and camera in a later step
+  // len *= 0.5; 
 
-	// ADDED: Debug message to see the sentence in the console
-	console.log(`Generation ${generation}:`, sentence); 
-	
-	drawFractal(); 
+  drawFractal();
 }
 
 function turtle() {
