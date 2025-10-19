@@ -1,8 +1,8 @@
 // Constants for the Honda tree model from the book
 const r1 = 0.9; // Contraction ratio for the trunk
-const r2 = 0.7; // Contraction ratio for branches
-const a0 = 30;  // Branching angle from the trunk
-const a2 = -30;  // Branching angle for lateral axes
+const r2 = 0.6; // Contraction ratio for branches
+const a0 = 45;  // Branching angle from the trunk
+const a2 = 45;  // Branching angle for lateral axes
 const s = 137.5; // Divergence angle
 const wr = 0.707; // Width decrease rate
 
@@ -11,34 +11,33 @@ let axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 
 let sentence = axiom;
 let generation = 0;
 
-// Rules are functions that return arrays of new module objects.
+let treeGeometry; // <-- ADDED: Will hold our 3D model
+
 // Jitter setup
 const JITTER_DEG = 30;                 // max jitter ±30°
 const jitter = (amp = JITTER_DEG) => (Math.random() * 2 - 1) * amp;
 
 const rules = {
+	// ... (rules are unchanged) ...
 	A: (l, w) => [
 		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
 		{ char: '&', params: [a0] }, { char: 'B', params: [l * r2, w * wr] }, { char: ']' },
 		{ char: '/', params: [s] }, { char: 'A', params: [l * r1, w * wr] }
 	],
-
-	// Add small roll jitter before the child and before the continuation
 	B: (l, w) => [
 		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '/', params: [jitter()] },         // twist child out of plane
+		{ char: '/', params: [jitter()] },
 		{ char: '-', params: [a2] }, { char: '$' },
 		{ char: 'C', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: '/', params: [jitter()] },         // different plane for continuation
+		{ char: '/', params: [jitter()] },
 		{ char: 'C', params: [l * r1, w * wr] }
 	],
-
 	C: (l, w) => [
 		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '/', params: [jitter()] },         // twist child out of plane
+		{ char: '/', params: [jitter()] },
 		{ char: '+', params: [a2] }, { char: '$' },
 		{ char: 'B', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: '/', params: [jitter()] },         // different plane for continuation
+		{ char: '/', params: [jitter()] },
 		{ char: 'B', params: [l * r1, w * wr] }
 	]
 };
@@ -47,7 +46,9 @@ function setup() {
 	createCanvas(600, 600, WEBGL);
 	const button = createButton('Generate Next');
 	button.mousePressed(generate);
-	drawFractal();
+
+	// We build the geometry once at the start
+	buildGeometry(); 
 }
 
 function generate() {
@@ -65,51 +66,75 @@ function generate() {
 	}
 	sentence = nextSentence;
 
-	// ADDED: Debug message to see the sentence in the console
 	console.log(`Generation ${generation}:`, sentence); 
 	
-	drawFractal(); 
+	// Re-build the geometry every time we generate
+	buildGeometry();
+	// We don't call drawFractal() here, the main draw() 
+	// loop will handle rendering the 'treeGeometry'
 }
 
-function turtle() {
+// RENAMED from turtle() to buildGeometry()
+function buildGeometry() {
+	// ADDED: Initialize the geometry object and state variables
+	treeGeometry = new p5.Geometry();
+	let currentPosition = createVector(0, 0, 0);
+	let stack = [];
+    
+	// We'll add orientation vectors in the next step
+
 	for (const module of sentence) {
 		switch (module.char) {
 			case '!': // Set line width
-				strokeWeight(module.params[0]);
+				// TODO: Store this width in a variable
+				// strokeWeight(module.params[0]); // <-- REMOVED
 				break;
 			case 'F': // Move forward and draw a line
-				line(0, 0, 0, 0, 0, -module.params[0]);
-				translate(0, 0, -module.params[0]);
+				// TODO: Calculate new position and add cylinder
+				// line(0, 0, 0, 0, 0, -module.params[0]); // <-- REMOVED
+				// translate(0, 0, -module.params[0]); // <-- REMOVED
 				break;
 			case '+': // Turn Right (Yaw)
-				rotateY(radians(-module.params[0]));
+				// TODO: Apply yaw rotation to our vectors
+				// rotateY(radians(-module.params[0])); // <-- REMOVED
 				break;
 			case '-': // Turn Left (Yaw)
-				rotateY(radians(module.params[0]));
+				// TODO: Apply yaw rotation to our vectors
+				// rotateY(radians(module.params[0])); // <-- REMOVED
 				break;
 			case '&': // Pitch Down
-				rotateX(radians(module.params[0]));
+				// TODO: Apply pitch rotation to our vectors
+				// rotateX(radians(module.params[0])); // <-- REMOVED
 				break;
 			case '^': // Pitch Up
-				rotateX(radians(-module.params[0]));
+				// TODO: Apply pitch rotation to our vectors
+				// rotateX(radians(-module.params[0])); // <-- REMOVED
 				break;
 			case '/': // Roll Right
-				rotateZ(radians(module.params[0]));
+				// TODO: Apply roll rotation to our vectors
+				// rotateZ(radians(module.params[0])); // <-- REMOVED
 				break;
 			case '\\': // Roll Left
-				rotateZ(radians(-module.params[0]));
+				// TODO: Apply roll rotation to our vectors
+				// rotateZ(radians(-module.params[0])); // <-- REMOVED
 				break;
 			case '$': // Roll 180 degrees
-				rotateZ(-radians(180));
+				// TODO: Apply roll rotation to our vectors
+				// rotateZ(-radians(180)); // <-- REMOVED
 				break;
 			case '[': // Push state
-				push();
+				// TODO: Push our state onto the 'stack' array
+				// push(); // <-- REMOVED
 				break;
 			case ']': // Pop state
-				pop();
+				// TODO: Pop our state from the 'stack' array
+				// pop(); // <-- REMOVED
 				break;
 		}
 	}
+    
+	// After the loop, we should finalize the geometry
+	// (We'll add computation steps here later)
 }
 
 
@@ -118,13 +143,12 @@ function drawFractal() {
 	background(50);
 	resetMatrix();
 	
-	// // Since the tree now "grows" along the Z-axis (forward), we need to
-	// // rotate the whole scene so we can see it standing up.
-	// // 1. Move the starting point down.
+	// Move the starting point down.
 	translate(0, 200, 0); 
 	
 	stroke(255);
-	turtle();
+	// TODO: This will be changed to 'model(treeGeometry)'
+	// turtle(); // <-- REMOVED and will be replaced
 }
 
 function draw() {
