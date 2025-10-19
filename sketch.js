@@ -48,7 +48,7 @@ function setup() {
 	button.mousePressed(generate);
 
 	// We build the geometry once at the start
-	buildGeometry(); 
+	generateTreeGeometry(); 
 }
 
 function generate() {
@@ -69,13 +69,13 @@ function generate() {
 	console.log(`Generation ${generation}:`, sentence); 
 	
 	// Re-build the geometry every time we generate
-	buildGeometry();
+	generateTreeGeometry();
 	// We don't call drawFractal() here, the main draw() 
 	// loop will handle rendering the 'treeGeometry'
 }
 
-// RENAMED from turtle() to buildGeometry()
-function buildGeometry() {
+// RENAMED from turtle() to generateTreeGeometry()
+function generateTreeGeometry() {
 	// ADDED: Initialize the geometry object and state variables
 	treeGeometry = new p5.Geometry();
 	let currentPosition = createVector(0, 0, 0);
