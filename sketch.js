@@ -74,68 +74,78 @@ function generate() {
 	// loop will handle rendering the 'treeGeometry'
 }
 
-// RENAMED from turtle() to generateTreeGeometry()
+// ... (constants, axiom, rules, setup, generate functions are unchanged) ...
+
 function generateTreeGeometry() {
-	// ADDED: Initialize the geometry object and state variables
+	// Initialize the geometry object and state variables
 	treeGeometry = new p5.Geometry();
 	let currentPosition = createVector(0, 0, 0);
 	let stack = [];
     
-	// We'll add orientation vectors in the next step
+	// --- ADDED FOR SUBTASK 1.2 ---
+    
+	// Get the starting width from the axiom
+	let currentWidth = axiom[0].params[1]; 
+
+	// Define the turtle's orientation vectors
+	// 'heading' is the direction 'F' will move in.
+	// Original code used translate(0, 0, -length), so 'heading' is -Z.
+	let heading = createVector(0, 0, -1);
+    
+	// 'up' is the turtle's vertical axis.
+	// Original code used rotateY for yaw, so Y is 'up'.
+	let up = createVector(0, 1, 0);
+    
+	// 'left' is the turtle's left side.
+	// Original code used rotateX for pitch, so X is 'left'.
+	// We use -1 so that (left x up) = heading. (i.e., a right-handed system)
+	let left = createVector(-1, 0, 0); 
+    
+	// --- END OF ADDED CODE ---
 
 	for (const module of sentence) {
 		switch (module.char) {
 			case '!': // Set line width
-				// TODO: Store this width in a variable
-				// strokeWeight(module.params[0]); // <-- REMOVED
+				// We'll store this for the cylinder
+				currentWidth = module.params[0]; // <-- ADDED
 				break;
 			case 'F': // Move forward and draw a line
 				// TODO: Calculate new position and add cylinder
-				// line(0, 0, 0, 0, 0, -module.params[0]); // <-- REMOVED
-				// translate(0, 0, -module.params[0]); // <-- REMOVED
 				break;
 			case '+': // Turn Right (Yaw)
 				// TODO: Apply yaw rotation to our vectors
-				// rotateY(radians(-module.params[0])); // <-- REMOVED
 				break;
 			case '-': // Turn Left (Yaw)
 				// TODO: Apply yaw rotation to our vectors
-				// rotateY(radians(module.params[0])); // <-- REMOVED
 				break;
 			case '&': // Pitch Down
 				// TODO: Apply pitch rotation to our vectors
-				// rotateX(radians(module.params[0])); // <-- REMOVED
 				break;
 			case '^': // Pitch Up
 				// TODO: Apply pitch rotation to our vectors
-				// rotateX(radians(-module.params[0])); // <-- REMOVED
 				break;
 			case '/': // Roll Right
 				// TODO: Apply roll rotation to our vectors
-				// rotateZ(radians(module.params[0])); // <-- REMOVED
 				break;
 			case '\\': // Roll Left
 				// TODO: Apply roll rotation to our vectors
-				// rotateZ(radians(-module.params[0])); // <-- REMOVED
 				break;
 			case '$': // Roll 180 degrees
 				// TODO: Apply roll rotation to our vectors
-				// rotateZ(-radians(180)); // <-- REMOVED
 				break;
 			case '[': // Push state
 				// TODO: Push our state onto the 'stack' array
-				// push(); // <-- REMOVED
 				break;
 			case ']': // Pop state
 				// TODO: Pop our state from the 'stack' array
-				// pop(); // <-- REMOVED
 				break;
 		}
 	}
     
-	// After the loop, we should finalize the geometry
-	// (We'll add computation steps here later)
+	// ... (rest of function) ...
 }
+
+// ... (drawFractal, draw functions are unchanged for now) ...
 
 
 
