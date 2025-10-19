@@ -70,6 +70,45 @@ function setup() {
 	generateTreeGeometry(); 
 }
 
+
+/**
+ * Adds a cylinder mesh to a p5.Geometry object.
+ * @param {p5.Geometry} geom The geometry object to add to.
+ * @param {p5.Vector} startPos The center of the bottom cap.
+ * @param {p5.Vector} endPos The center of the top cap.
+ * @param {number} radius The cylinder's radius.
+ * @param {number} detail The number of sides (vertices) for the caps (e.g., 6 for a hexagon).
+ */
+function addCylinder(geom, startPos, endPos, radius, detail = 6) {
+    
+	// --- 1. Calculate Orientation Vectors ---
+    
+	// The main axis of the cylinder
+	const axis = p5.Vector.sub(endPos, startPos);
+	const len = axis.mag();
+	axis.normalize();
+
+	// Find a vector that is not parallel to the axis
+	// This is a standard trick: if the axis is close to the world Y-axis,
+	// use the world X-axis as the temporary vector. Otherwise, use Y.
+	let tempVec = createVector(0, 1, 0);
+	if (abs(axis.dot(tempVec)) > 0.999) {
+		tempVec = createVector(1, 0, 0);
+	}
+
+	// Create the two perpendicular orientation vectors for the caps
+	// using cross products.
+	const ortho1 = p5.Vector.cross(axis, tempVec).normalize();
+	const ortho2 = p5.Vector.cross(axis, ortho1).normalize();
+
+	// --- 2. Calculate Vertices (TODO in next step) ---
+    
+	// --- 3. Add Side Faces (TODO in next step) ---
+    
+	// --- 4. Add Cap Faces (TODO in next step) ---
+}
+// --- END OF ADDED CODE ---
+
 function generate() {
 	generation++;
 	let nextSentence = [];
