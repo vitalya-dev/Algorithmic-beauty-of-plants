@@ -42,6 +42,25 @@ const rules = {
 	]
 };
 
+
+function rotateAroundAxis(v, axis, angleDeg) {
+	const angleRad = radians(angleDeg);
+	const cosA = cos(angleRad);
+	const sinA = sin(angleRad);
+    
+	// v*cos(theta)
+	const term1 = v.copy().mult(cosA);
+    
+	// (axis x v) * sin(theta)
+	const term2 = axis.cross(v).mult(sinA);
+    
+	// axis * (axis . v) * (1 - cos(theta))
+	const term3 = axis.copy().mult(axis.dot(v) * (1 - cosA));
+    
+	return p5.Vector.add(term1, term2).add(term3);
+}
+
+
 function setup() {
 	createCanvas(600, 600, WEBGL);
 	const button = createButton('Generate Next');
@@ -79,7 +98,6 @@ function generate() {
 // ... (constants, axiom, rules, setup, generate functions are unchanged) ...
 
 function generateTreeGeometry() {
-	// ... (treeGeometry, currentPosition, stack, currentWidth, heading, up, left initializations) ...
 	treeGeometry = new p5.Geometry();
 	let currentPosition = createVector(0, 0, 0);
 	let stack = [];
@@ -89,6 +107,28 @@ function generateTreeGeometry() {
 	let up = createVector(0, 1, 0);
 	let left = createVector(-1, 0, 0); 
     
+	// --- ADDED FOR SUBTASK 1.4 ---
+    
+	// Yaw: Rotate around the 'up' axis
+	const applyYaw = (angle) => {
+		heading = rotateAroundAxis(heading, up, angle);
+		left = rotateAroundAxis(left, up, angle);
+	};
+
+	// Pitch: Rotate around the 'left' axis
+	const applyPitch = (angle) => {
+		heading = rotateAroundAxis(heading, left, angle);
+		up = rotateAroundAxis(up, left, angle);
+	};
+
+	// Roll: Rotate around the 'heading' axis
+	const applyRoll = (angle) => {
+		left = rotateAroundAxis(left, heading, angle);
+		up = rotateAroundAxis(up, heading, angle);
+	};
+    
+	// --- END OF ADDED CODE ---
+
 	for (const module of sentence) {
 		switch (module.char) {
 			case '!': 
@@ -97,31 +137,28 @@ function generateTreeGeometry() {
 			case 'F': 
 				// TODO
 				break;
-			case '+': 
-				// TODO
+			case '+': // Turn Right (Yaw)
+				// TODO: Wire this up
 				break;
-			case '-': 
-				// TODO
+			case '-': // Turn Left (Yaw)
+				// TODO: Wire this up
 				break;
-			case '&': 
-				// TODO
+			case '&': // Pitch Down
+				// TODO: Wire this up
 				break;
-			case '^': 
-				// TODO
+			case '^': // Pitch Up
+				// TODO: Wire this up
 				break;
-			case '/': 
-				// TODO
+			case '/': // Roll Right
+				// TODO: Wire this up
 				break;
-			case '\\': 
-				// TODO
+			case '\\': // Roll Left
+				// TODO: Wire this up
 				break;
-			case '$': 
-				// TODO
+			case '$': // Roll 180 degrees
+				// TODO: Wire this up
 				break;
-
-			// --- ADDED FOR SUBTASK 1.3 ---
 			case '[': // Push state
-				// Save a copy of the current state onto the stack
 				stack.push({
 					pos: currentPosition.copy(),
 					heading: heading.copy(),
@@ -131,7 +168,6 @@ function generateTreeGeometry() {
 				});
 				break;
 			case ']': // Pop state
-				// Restore the last saved state from the stack
 				const state = stack.pop();
 				currentPosition = state.pos;
 				heading = state.heading;
@@ -139,7 +175,6 @@ function generateTreeGeometry() {
 				left = state.left;
 				currentWidth = state.width;
 				break;
-			// --- END OF ADDED CODE ---
 		}
 	}
     
@@ -147,9 +182,6 @@ function generateTreeGeometry() {
 }
 
 // ... (drawFractal, draw functions are unchanged for now) ...
-
-// ... (drawFractal, draw functions are unchanged for now) ...
-
 
 
 function drawFractal() {
