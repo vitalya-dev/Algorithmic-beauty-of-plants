@@ -147,7 +147,31 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6) {
 		geom.faces.push([i0, i2, i3]);
 	}
     
-	// --- 4. Add Cap Faces (TODO in next step) ---
+	// Add the center vertices for the caps
+	const bottomCapCenterIndex = geom.vertices.length;
+	geom.vertices.push(startPos.copy());
+    
+	const topCapCenterIndex = geom.vertices.length;
+	geom.vertices.push(endPos.copy());
+    
+	// Create the "fan" of triangles for each cap
+	for (let i = 0; i < detail; i++) {
+		const next_i = (i + 1) % detail;
+
+		// Current and next vertex indices for the bottom circle
+		const i_bottom_current = baseIndex + i * 2;
+		const i_bottom_next = baseIndex + next_i * 2;
+
+		// Current and next vertex indices for the top circle
+		const i_top_current = baseIndex + i * 2 + 1;
+		const i_top_next = baseIndex + next_i * 2 + 1;
+
+		// Bottom cap face (counter-clockwise)
+		geom.faces.push([bottomCapCenterIndex, i_bottom_next, i_bottom_current]);
+        
+		// Top cap face (counter-clockwise)
+		geom.faces.push([topCapCenterIndex, i_top_current, i_top_next]);
+	}
 }
 // --- END OF ADDED CODE ---
 
