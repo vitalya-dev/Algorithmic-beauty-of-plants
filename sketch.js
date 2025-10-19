@@ -128,7 +128,24 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6) {
 		geom.vertices.push(topVertex);
 	}
     
-	// --- 3. Add Side Faces (TODO in next step) ---
+	// --- 3. Add Side Faces ---
+    
+	for (let i = 0; i < detail; i++) {
+		// Indices for the current pair of vertices (bottom and top)
+		const i0 = baseIndex + i * 2;     // Current bottom vertex
+		const i1 = baseIndex + i * 2 + 1; // Current top vertex
+        
+		// Indices for the next pair of vertices, wrapping around
+		const next_i = (i + 1) % detail; // Wrap around to 0 at the end
+		const i2 = baseIndex + next_i * 2 + 1; // Next top vertex
+		const i3 = baseIndex + next_i * 2;     // Next bottom vertex
+
+		// Add the two triangles that form the rectangular side
+		// Face 1 (Triangle 1: bottom-current, top-current, top-next)
+		geom.faces.push([i0, i1, i2]);
+		// Face 2 (Triangle 2: bottom-current, top-next, bottom-next)
+		geom.faces.push([i0, i2, i3]);
+	}
     
 	// --- 4. Add Cap Faces (TODO in next step) ---
 }
