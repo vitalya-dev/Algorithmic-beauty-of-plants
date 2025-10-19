@@ -107,27 +107,20 @@ function generateTreeGeometry() {
 	let up = createVector(0, 1, 0);
 	let left = createVector(-1, 0, 0); 
     
-	// --- ADDED FOR SUBTASK 1.4 ---
-    
-	// Yaw: Rotate around the 'up' axis
+	// Rotation functions (applyYaw, applyPitch, applyRoll)
 	const applyYaw = (angle) => {
 		heading = rotateAroundAxis(heading, up, angle);
 		left = rotateAroundAxis(left, up, angle);
 	};
-
-	// Pitch: Rotate around the 'left' axis
 	const applyPitch = (angle) => {
 		heading = rotateAroundAxis(heading, left, angle);
 		up = rotateAroundAxis(up, left, angle);
 	};
-
-	// Roll: Rotate around the 'heading' axis
 	const applyRoll = (angle) => {
 		left = rotateAroundAxis(left, heading, angle);
 		up = rotateAroundAxis(up, heading, angle);
 	};
     
-	// --- END OF ADDED CODE ---
 
 	for (const module of sentence) {
 		switch (module.char) {
@@ -135,29 +128,33 @@ function generateTreeGeometry() {
 				currentWidth = module.params[0];
 				break;
 			case 'F': 
-				// TODO
+				// TODO: This is the next major step
 				break;
+            
+			// --- ADDED FOR SUBTASK 1.5 ---
 			case '+': // Turn Right (Yaw)
-				// TODO: Wire this up
+				applyYaw(-module.params[0]);
 				break;
 			case '-': // Turn Left (Yaw)
-				// TODO: Wire this up
+				applyYaw(module.params[0]);
 				break;
 			case '&': // Pitch Down
-				// TODO: Wire this up
+				applyPitch(module.params[0]);
 				break;
 			case '^': // Pitch Up
-				// TODO: Wire this up
+				applyPitch(-module.params[0]);
 				break;
 			case '/': // Roll Right
-				// TODO: Wire this up
+				applyRoll(module.params[0]);
 				break;
 			case '\\': // Roll Left
-				// TODO: Wire this up
+				applyRoll(-module.params[0]);
 				break;
 			case '$': // Roll 180 degrees
-				// TODO: Wire this up
+				applyRoll(-180);
 				break;
+			// --- END OF ADDED CODE ---
+
 			case '[': // Push state
 				stack.push({
 					pos: currentPosition.copy(),
@@ -181,7 +178,7 @@ function generateTreeGeometry() {
 	// ... (rest of function) ...
 }
 
-// ... (drawFractal, draw functions are unchanged for now) ...
+// ... (drawFractal, draw functions unchanged) ...
 
 
 function drawFractal() {
