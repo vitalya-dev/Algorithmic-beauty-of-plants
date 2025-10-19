@@ -101,7 +101,32 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6) {
 	const ortho1 = p5.Vector.cross(axis, tempVec).normalize();
 	const ortho2 = p5.Vector.cross(axis, ortho1).normalize();
 
-	// --- 2. Calculate Vertices (TODO in next step) ---
+	// --- 2. Calculate Vertices ---
+    
+	// Get the index of the first vertex we're about to add
+	const baseIndex = geom.vertices.length;
+
+	for (let i = 0; i < detail; i++) {
+		// Calculate the angle for this point on the circle
+		const angle = (i / detail) * TWO_PI;
+        
+		// Calculate the (x, y) offset in the circle's local 2D plane
+		const x = cos(angle) * radius;
+		const y = sin(angle) * radius;
+        
+		// Use the orientation vectors to find the 3D position of the offset
+		const offsetTerm1 = ortho1.copy().mult(x);
+		const offsetTerm2 = ortho2.copy().mult(y);
+		const pointOffset = p5.Vector.add(offsetTerm1, offsetTerm2);
+        
+		// Add the vertex for the bottom cap
+		const bottomVertex = p5.Vector.add(startPos, pointOffset);
+		geom.vertices.push(bottomVertex);
+        
+		// Add the vertex for the top cap
+		const topVertex = p5.Vector.add(endPos, pointOffset);
+		geom.vertices.push(topVertex);
+	}
     
 	// --- 3. Add Side Faces (TODO in next step) ---
     
