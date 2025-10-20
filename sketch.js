@@ -202,17 +202,22 @@ function generate() {
 
 // ... (constants, axiom, rules, setup, generate functions are unchanged) ...
 
+// ... (constants, axiom, rules, rotateAroundAxis, addCylinder, setup, generate unchanged) ...
+
 function generateTreeGeometry() {
 	treeGeometry = new p5.Geometry();
 	let currentPosition = createVector(0, 0, 0);
 	let stack = [];
     
+	// Get the starting width from the axiom
 	let currentWidth = axiom[0].params[1]; 
+    
 	let heading = createVector(0, 0, -1);
 	let up = createVector(0, 1, 0);
 	let left = createVector(-1, 0, 0); 
     
 	// Rotation functions (applyYaw, applyPitch, applyRoll)
+	// ... (unchanged) ...
 	const applyYaw = (angle) => {
 		heading = rotateAroundAxis(heading, up, angle);
 		left = rotateAroundAxis(left, up, angle);
@@ -229,14 +234,28 @@ function generateTreeGeometry() {
 
 	for (const module of sentence) {
 		switch (module.char) {
-			case '!': 
+			case '!': // Set line width
 				currentWidth = module.params[0];
 				break;
-			case 'F': 
-				// TODO: This is the next major step
-				break;
             
-			// --- ADDED FOR SUBTASK 1.5 ---
+			// --- MODIFIED FOR SUBTASK 3 ---
+			case 'F': // Move forward and draw cylinder
+				const len = module.params[0];
+				const radius = currentWidth / 2; // L-system 'w' param is width, we need radius
+                
+				// 1. Define the start and end of the cylinder
+				const startPos = currentPosition.copy();
+				const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
+                
+				// 2. Add the cylinder mesh to our geometry object
+				// Using a detail of 6 for a hexagonal-like branch
+				addCylinder(treeGeometry, startPos, endPos, radius, 6);
+                
+				// 3. Move the turtle to the new position
+				currentPosition = endPos;
+				break;
+			// --- END OF MODIFIED CODE ---
+            
 			case '+': // Turn Right (Yaw)
 				applyYaw(-module.params[0]);
 				break;
@@ -258,8 +277,6 @@ function generateTreeGeometry() {
 			case '$': // Roll 180 degrees
 				applyRoll(-180);
 				break;
-			// --- END OF ADDED CODE ---
-
 			case '[': // Push state
 				stack.push({
 					pos: currentPosition.copy(),
@@ -280,10 +297,13 @@ function generateTreeGeometry() {
 		}
 	}
     
-	// ... (rest of function) ...
+	// After the loop, we should do some final computations
+	// for the p5.Geometry object, like computing normals
+	// for lighting.
+	treeGeometry.computeNormals();
 }
 
-// ... (drawFractal, draw functions unchanged) ...
+// ... (drawFractal, draw functions unchanged for now) ...
 
 
 function drawFractal() {
