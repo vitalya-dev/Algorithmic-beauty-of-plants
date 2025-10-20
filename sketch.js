@@ -7,7 +7,7 @@ const s = 137.5; // Divergence angle
 const wr = 0.707; // Width decrease rate
 
 // The axiom is an array of objects
-let axiom = [{ char: 'A', params: [100, 5] }]; // Start with length 100, width 10
+let axiom = [{ char: 'A', params: [100, 20] }]; // Start with length 100, width 10
 let sentence = axiom;
 let generation = 0;
 
@@ -113,11 +113,10 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, branchColor) {
 		const topVertex = p5.Vector.add(endPos, pointOffset);
 		geom.vertices.push(topVertex);
 
-		// --- ADDED FOR SUBTASK 3 ---
-		// Add the color for both vertices
-		geom.vertexColors.push(branchColor); // Color for bottomVertex
-		geom.vertexColors.push(branchColor); // Color for topVertex
-		// --- END OF ADDED CODE ---
+		// --- MODIFIED ---
+		// Spread the [R,G,B,A] values into the flat array
+		geom.vertexColors.push(...branchColor._array); 
+		geom.vertexColors.push(...branchColor._array); 
 	}
     
 	// --- 3. Add Side Faces ---
@@ -139,11 +138,10 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, branchColor) {
 	const topCapCenterIndex = geom.vertices.length;
 	geom.vertices.push(endPos.copy());
     
-	// --- ADDED FOR SUBTASK 3 ---
-	// Add the color for the center vertices
-	geom.vertexColors.push(branchColor); // Color for bottomCapCenter
-	geom.vertexColors.push(branchColor); // Color for topCapCenter
-	// --- END OF ADDED CODE ---
+	// --- MODIFIED ---
+	// Spread the [R,G,B,A] values for the center vertices
+	geom.vertexColors.push(...branchColor._array);
+	geom.vertexColors.push(...branchColor._array);
 
 	for (let i = 0; i < detail; i++) {
 		const next_i = (i + 1) % detail;
@@ -240,6 +238,7 @@ function generateTreeGeometry() {
                 
 				// 2. Add the cylinder mesh to our geometry object
 				// We will pass 'branchColor' in the next subtask
+				console.log(branchColor);
 				addCylinder(treeGeometry, startPos, endPos, radius, 6, branchColor);
                 
 				// 3. Move the turtle to the new position
