@@ -7,7 +7,7 @@ const s = 137.5; // Divergence angle
 const wr = 0.707; // Width decrease rate
 
 // The axiom is an array of objects
-let axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
+let axiom = [{ char: 'A', params: [100, 5] }]; // Start with length 100, width 10
 let sentence = axiom;
 let generation = 0;
 
@@ -310,12 +310,23 @@ function drawFractal() {
 	background(50);
 	resetMatrix();
 	
-	// Move the starting point down.
+	// Move the starting point down and rotate for a better view
 	translate(0, 200, 0); 
+	rotateX(-PI / 2); // Rotate to see it standing up, as it's built along -Z
 	
-	stroke(255);
-	// TODO: This will be changed to 'model(treeGeometry)'
-	// turtle(); // <-- REMOVED and will be replaced
+	// Add some lighting
+	ambientLight(100);
+	directionalLight(255, 255, 255, 0.5, 0.5, -1);
+	
+	// Use normalMaterial to visualize the geometry normals
+	// This is great for debugging 3D shapes.
+	normalMaterial();
+	noStroke(); // Hide the wireframe
+	
+	// Render the pre-built 3D model
+	if (treeGeometry) {
+		model(treeGeometry);
+	}
 }
 
 function draw() {
