@@ -189,7 +189,7 @@ function generateTreeGeometry() {
     
 	// --- ADDED FOR SUBTASK 1 ---
 	const brownColor = color(139, 69, 19); // A nice tree-bark brown
-	const greenColor = color(0, 128, 0);   // A nice leaf green
+	const newGrowthColor = color(210, 180, 140);   // A nice leaf green
 	const maxWidth = axiom[0].params[1];   // Max width is the starting width
 	// --- END OF ADDED CODE ---
 
@@ -233,7 +233,7 @@ function generateTreeGeometry() {
 				// Map width from [0, maxWidth] to [1, 0]
 				// So, 0 width is 1 (green) and maxWidth is 0 (brown)
 				const colorT = map(currentWidth, 0, maxWidth, 1, 0);
-				const branchColor = lerpColor(brownColor, greenColor, colorT);
+				const branchColor = lerpColor(brownColor, newGrowthColor, colorT);
 				// --- END OF ADDED CODE ---
                 
 				// 2. Add the cylinder mesh to our geometry object
