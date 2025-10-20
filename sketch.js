@@ -303,11 +303,11 @@ function drawFractal() {
 	
 	// Add some lighting
 	ambientLight(100);
-	directionalLight(255, 255, 255, 0.5, 0.5, -1);
+	//directionalLight(255, 255, 255, 0.5, 0.5, -1);
 	
 	// Use normalMaterial to visualize the geometry normals
 	// This is great for debugging 3D shapes.
-	normalMaterial();
+	//normalMaterial();
 	noStroke(); // Hide the wireframe
 	
 	// Render the pre-built 3D model
