@@ -194,30 +194,30 @@ function generate() {
 	
 	// Re-build the geometry every time we generate
 	generateTreeGeometry();
-	// We don't call drawFractal() here, the main draw() 
-	// loop will handle rendering the 'treeGeometry'
 }
 
-// ... (constants, axiom, rules, setup, generate functions are unchanged) ...
 
-// ... (constants, axiom, rules, setup, generate functions are unchanged) ...
-
-// ... (constants, axiom, rules, rotateAroundAxis, addCylinder, setup, generate unchanged) ...
-
+//
+// --- function generateTreeGeometry ---
+//
 function generateTreeGeometry() {
 	treeGeometry = new p5.Geometry();
 	let currentPosition = createVector(0, 0, 0);
 	let stack = [];
     
-	// Get the starting width from the axiom
-	let currentWidth = axiom[0].params[1]; 
+	// --- ADDED FOR SUBTASK 1 ---
+	const brownColor = color(139, 69, 19); // A nice tree-bark brown
+	const greenColor = color(0, 128, 0);   // A nice leaf green
+	const maxWidth = axiom[0].params[1];   // Max width is the starting width
+	// --- END OF ADDED CODE ---
+
+	let currentWidth = maxWidth; 
     
 	let heading = createVector(0, 0, -1);
 	let up = createVector(0, 1, 0);
 	let left = createVector(-1, 0, 0); 
     
 	// Rotation functions (applyYaw, applyPitch, applyRoll)
-	// ... (unchanged) ...
 	const applyYaw = (angle) => {
 		heading = rotateAroundAxis(heading, up, angle);
 		left = rotateAroundAxis(left, up, angle);
@@ -238,23 +238,29 @@ function generateTreeGeometry() {
 				currentWidth = module.params[0];
 				break;
             
-			// --- MODIFIED FOR SUBTASK 3 ---
 			case 'F': // Move forward and draw cylinder
 				const len = module.params[0];
-				const radius = currentWidth / 2; // L-system 'w' param is width, we need radius
+				const radius = currentWidth / 2;
                 
 				// 1. Define the start and end of the cylinder
 				const startPos = currentPosition.copy();
 				const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
                 
+				// --- ADDED FOR SUBTASK 1 ---
+				// Calculate the color based on width
+				// Map width from [0, maxWidth] to [1, 0]
+				// So, 0 width is 1 (green) and maxWidth is 0 (brown)
+				const colorT = map(currentWidth, 0, maxWidth, 1, 0);
+				const branchColor = lerpColor(brownColor, greenColor, colorT);
+				// --- END OF ADDED CODE ---
+                
 				// 2. Add the cylinder mesh to our geometry object
-				// Using a detail of 6 for a hexagonal-like branch
+				// We will pass 'branchColor' in the next subtask
 				addCylinder(treeGeometry, startPos, endPos, radius, 6);
                 
 				// 3. Move the turtle to the new position
 				currentPosition = endPos;
 				break;
-			// --- END OF MODIFIED CODE ---
             
 			case '+': // Turn Right (Yaw)
 				applyYaw(-module.params[0]);
@@ -297,9 +303,6 @@ function generateTreeGeometry() {
 		}
 	}
     
-	// After the loop, we should do some final computations
-	// for the p5.Geometry object, like computing normals
-	// for lighting.
 	treeGeometry.computeNormals();
 }
 
