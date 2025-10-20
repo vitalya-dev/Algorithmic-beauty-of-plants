@@ -79,7 +79,7 @@ function setup() {
  * @param {number} radius The cylinder's radius.
  * @param {number} detail The number of sides (vertices) for the caps (e.g., 6 for a hexagon).
  */
-function addCylinder(geom, startPos, endPos, radius, detail = 6) {
+function addCylinder(geom, startPos, endPos, radius, detail = 6, branchColor) {
     
 	// --- 1. Calculate Orientation Vectors ---
     
@@ -256,7 +256,7 @@ function generateTreeGeometry() {
                 
 				// 2. Add the cylinder mesh to our geometry object
 				// We will pass 'branchColor' in the next subtask
-				addCylinder(treeGeometry, startPos, endPos, radius, 6);
+				addCylinder(treeGeometry, startPos, endPos, radius, 6, branchColor);
                 
 				// 3. Move the turtle to the new position
 				currentPosition = endPos;
