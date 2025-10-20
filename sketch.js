@@ -7,14 +7,14 @@ const s = 137.5; // Divergence angle
 const wr = 0.707; // Width decrease rate
 
 // The axiom is an array of objects
-let axiom = [{ char: 'A', params: [100, 20] }]; // Start with length 100, width 10
+let axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
 let sentence = axiom;
 let generation = 0;
 
 let treeGeometry; // <-- ADDED: Will hold our 3D model
 
 // Jitter setup
-const JITTER_DEG = 30;                 // max jitter ±30°
+const JITTER_DEG = 60;                 // max jitter ±30°
 const jitter = (amp = JITTER_DEG) => (Math.random() * 2 - 1) * amp;
 
 const rules = {
@@ -73,14 +73,11 @@ function setup() {
 
 /**
  * Adds a cylinder mesh to a p5.Geometry object.
- * @param {p5.Geometry} geom The geometry object to add to.
- * @param {p5.Vector} startPos The center of the bottom cap.
- * @param {p5.Vector} endPos The center of the top cap.
- * @param {number} radius The cylinder's radius.
- * @param {number} detail The number of sides (vertices) for the caps (e.g., 6 for a hexagon).
- * @param {p5.Color} branchColor The color to apply to this cylinder's vertices.
+ * ...
+ * @param {p5.Color} colorStart The color for the bottom vertices.
+ * @param {p5.Color} colorEnd The color for the top vertices.
  */
-function addCylinder(geom, startPos, endPos, radius, detail = 6, branchColor) {
+function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, colorEnd) {
     
 	// --- 1. Calculate Orientation Vectors ---
 	const axis = p5.Vector.sub(endPos, startPos);
@@ -114,9 +111,9 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, branchColor) {
 		geom.vertices.push(topVertex);
 
 		// --- MODIFIED ---
-		// Spread the [R,G,B,A] values into the flat array
-		geom.vertexColors.push(...branchColor._array); 
-		geom.vertexColors.push(...branchColor._array); 
+		// Apply start color to bottom vertex, end color to top vertex
+		geom.vertexColors.push(...colorStart._array); 
+		geom.vertexColors.push(...colorEnd._array); 
 	}
     
 	// --- 3. Add Side Faces ---
@@ -139,9 +136,9 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, branchColor) {
 	geom.vertices.push(endPos.copy());
     
 	// --- MODIFIED ---
-	// Spread the [R,G,B,A] values for the center vertices
-	geom.vertexColors.push(...branchColor._array);
-	geom.vertexColors.push(...branchColor._array);
+	// Apply start color to bottom cap, end color to top cap
+	geom.vertexColors.push(...colorStart._array);
+	geom.vertexColors.push(...colorEnd._array);
 
 	for (let i = 0; i < detail; i++) {
 		const next_i = (i + 1) % detail;
@@ -187,11 +184,9 @@ function generateTreeGeometry() {
 	let currentPosition = createVector(0, 0, 0);
 	let stack = [];
     
-	// --- ADDED FOR SUBTASK 1 ---
-	const brownColor = color(139, 69, 19); // A nice tree-bark brown
-	const newGrowthColor = color(210, 180, 140);   // A nice leaf green
-	const maxWidth = axiom[0].params[1];   // Max width is the starting width
-	// --- END OF ADDED CODE ---
+	const brownColor = color(139, 69, 19);       // Dark bark brown
+	const newGrowthColor = color(210, 180, 140); // Light tan/beige for new branches
+	const maxWidth = axiom[0].params[1];         // Max width is the starting width
 
 	let currentWidth = maxWidth; 
     
@@ -228,18 +223,20 @@ function generateTreeGeometry() {
 				const startPos = currentPosition.copy();
 				const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
                 
-				// --- ADDED FOR SUBTASK 1 ---
-				// Calculate the color based on width
-				// Map width from [0, maxWidth] to [1, 0]
-				// So, 0 width is 1 (green) and maxWidth is 0 (brown)
-				const colorT = map(currentWidth, 0, maxWidth, 1, 0);
-				const branchColor = lerpColor(brownColor, newGrowthColor, colorT);
-				// --- END OF ADDED CODE ---
+				// --- MODIFIED ---
+				// Calculate color for the START of the segment
+				const colorT_Start = map(currentWidth, 0, maxWidth, 1, 0);
+				const colorStart = lerpColor(brownColor, newGrowthColor, colorT_Start);
                 
+				// Calculate color for the END of the segment
+				const nextWidth = currentWidth * wr; // Use the width reducer 'wr'
+				const colorT_End = map(nextWidth, 0, maxWidth, 1, 0);
+				const colorEnd = lerpColor(brownColor, newGrowthColor, colorT_End);
+				// --- END OF MODIFIED CODE ---
+
 				// 2. Add the cylinder mesh to our geometry object
-				// We will pass 'branchColor' in the next subtask
-				console.log(branchColor);
-				addCylinder(treeGeometry, startPos, endPos, radius, 6, branchColor);
+				// --- MODIFIED CALL ---
+				addCylinder(treeGeometry, startPos, endPos, radius, 6, colorStart, colorEnd);
                 
 				// 3. Move the turtle to the new position
 				currentPosition = endPos;
@@ -286,6 +283,7 @@ function generateTreeGeometry() {
 		}
 	}
     
+	// Recalculate normals
 	treeGeometry.computeNormals();
 }
 
@@ -301,7 +299,7 @@ function drawFractal() {
 	rotateX(-PI / 2); // Rotate to see it standing up, as it's built along -Z
 	
 	// Add some lighting
-	ambientLight(100);
+	ambientLight(300);
 	//directionalLight(255, 255, 255, 0.5, 0.5, -1);
 	
 	// Use normalMaterial to visualize the geometry normals
