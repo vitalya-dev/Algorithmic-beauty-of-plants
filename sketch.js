@@ -78,102 +78,86 @@ function setup() {
  * @param {p5.Vector} endPos The center of the top cap.
  * @param {number} radius The cylinder's radius.
  * @param {number} detail The number of sides (vertices) for the caps (e.g., 6 for a hexagon).
+ * @param {p5.Color} branchColor The color to apply to this cylinder's vertices.
  */
 function addCylinder(geom, startPos, endPos, radius, detail = 6, branchColor) {
     
 	// --- 1. Calculate Orientation Vectors ---
-    
-	// The main axis of the cylinder
 	const axis = p5.Vector.sub(endPos, startPos);
-	const len = axis.mag();
 	axis.normalize();
 
-	// Find a vector that is not parallel to the axis
-	// This is a standard trick: if the axis is close to the world Y-axis,
-	// use the world X-axis as the temporary vector. Otherwise, use Y.
 	let tempVec = createVector(0, 1, 0);
 	if (abs(axis.dot(tempVec)) > 0.999) {
 		tempVec = createVector(1, 0, 0);
 	}
 
-	// Create the two perpendicular orientation vectors for the caps
-	// using cross products.
 	const ortho1 = p5.Vector.cross(axis, tempVec).normalize();
 	const ortho2 = p5.Vector.cross(axis, ortho1).normalize();
-
-	// --- 2. Calculate Vertices ---
     
-	// Get the index of the first vertex we're about to add
+	// --- 2. Calculate Vertices ---
 	const baseIndex = geom.vertices.length;
 
 	for (let i = 0; i < detail; i++) {
-		// Calculate the angle for this point on the circle
 		const angle = (i / detail) * TWO_PI;
         
-		// Calculate the (x, y) offset in the circle's local 2D plane
 		const x = cos(angle) * radius;
 		const y = sin(angle) * radius;
         
-		// Use the orientation vectors to find the 3D position of the offset
 		const offsetTerm1 = ortho1.copy().mult(x);
 		const offsetTerm2 = ortho2.copy().mult(y);
 		const pointOffset = p5.Vector.add(offsetTerm1, offsetTerm2);
         
-		// Add the vertex for the bottom cap
 		const bottomVertex = p5.Vector.add(startPos, pointOffset);
 		geom.vertices.push(bottomVertex);
         
-		// Add the vertex for the top cap
 		const topVertex = p5.Vector.add(endPos, pointOffset);
 		geom.vertices.push(topVertex);
+
+		// --- ADDED FOR SUBTASK 3 ---
+		// Add the color for both vertices
+		geom.vertexColors.push(branchColor); // Color for bottomVertex
+		geom.vertexColors.push(branchColor); // Color for topVertex
+		// --- END OF ADDED CODE ---
 	}
     
 	// --- 3. Add Side Faces ---
-    
 	for (let i = 0; i < detail; i++) {
-		// Indices for the current pair of vertices (bottom and top)
-		const i0 = baseIndex + i * 2;     // Current bottom vertex
-		const i1 = baseIndex + i * 2 + 1; // Current top vertex
-        
-		// Indices for the next pair of vertices, wrapping around
-		const next_i = (i + 1) % detail; // Wrap around to 0 at the end
-		const i2 = baseIndex + next_i * 2 + 1; // Next top vertex
-		const i3 = baseIndex + next_i * 2;     // Next bottom vertex
+		const i0 = baseIndex + i * 2;
+		const i1 = baseIndex + i * 2 + 1;
+		const next_i = (i + 1) % detail;
+		const i2 = baseIndex + next_i * 2 + 1;
+		const i3 = baseIndex + next_i * 2;
 
-		// Add the two triangles that form the rectangular side
-		// Face 1 (Triangle 1: bottom-current, top-current, top-next)
 		geom.faces.push([i0, i1, i2]);
-		// Face 2 (Triangle 2: bottom-current, top-next, bottom-next)
 		geom.faces.push([i0, i2, i3]);
 	}
-    
-	// Add the center vertices for the caps
+
+	// --- 4. Add Cap Faces ---
 	const bottomCapCenterIndex = geom.vertices.length;
 	geom.vertices.push(startPos.copy());
     
 	const topCapCenterIndex = geom.vertices.length;
 	geom.vertices.push(endPos.copy());
     
-	// Create the "fan" of triangles for each cap
+	// --- ADDED FOR SUBTASK 3 ---
+	// Add the color for the center vertices
+	geom.vertexColors.push(branchColor); // Color for bottomCapCenter
+	geom.vertexColors.push(branchColor); // Color for topCapCenter
+	// --- END OF ADDED CODE ---
+
 	for (let i = 0; i < detail; i++) {
 		const next_i = (i + 1) % detail;
 
-		// Current and next vertex indices for the bottom circle
 		const i_bottom_current = baseIndex + i * 2;
 		const i_bottom_next = baseIndex + next_i * 2;
 
-		// Current and next vertex indices for the top circle
 		const i_top_current = baseIndex + i * 2 + 1;
 		const i_top_next = baseIndex + next_i * 2 + 1;
 
-		// Bottom cap face (counter-clockwise)
 		geom.faces.push([bottomCapCenterIndex, i_bottom_next, i_bottom_current]);
-        
-		// Top cap face (counter-clockwise)
 		geom.faces.push([topCapCenterIndex, i_top_current, i_top_next]);
 	}
 }
-// --- END OF ADDED CODE ---
 
 function generate() {
 	generation++;
