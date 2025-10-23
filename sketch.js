@@ -6,16 +6,44 @@ const a2 = 45;  // Branching angle for lateral axes
 const s = 137.5; // Divergence angle
 const wr = 0.707; // Width decrease rate
 
-// The axiom is an array of objects
-let axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
-let sentence = axiom;
-let generation = 0;
-
-let treeGeometry; // <-- ADDED: Will hold our 3D model
-
 // Jitter setup
 const JITTER_DEG = 60;                 // max jitter ±30°
 const jitter = (amp = JITTER_DEG) => (Math.random() * 2 - 1) * amp;
+
+// --- REMOVED GLOBAL VARIABLES ---
+// let axiom = ... (moved)
+// let sentence = ... (moved)
+// let generation = ... (moved)
+// let treeGeometry; (moved)
+// let button; (moved)
+
+// --- NEW Tree Class ---
+class Tree {
+	constructor(x, y, z) {
+		// 1. Store the tree's base position
+		this.basePosition = createVector(x, y, z);
+
+		// 2. Each tree gets its own L-system state
+		this.axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
+		this.sentence = this.axiom;
+		this.generation = 0;
+		this.maxWidth = this.axiom[0].params[1]; // Max width is the starting width
+
+		// 3. Each tree gets its own 3D model
+		this.treeGeometry = null; // Will be a p5.Geometry object
+
+		// 4. Each tree gets its own button
+		this.button = createButton('Generate Next');
+		this.button.position(20, 20); // Still static for now, we'll fix this in Subtask 4
+		
+		// We'll make the button call this.generate (which we'll create in Subtask 2)
+		// this.button.mousePressed(() => this.generate()); 
+		// For now, we'll just log a message
+		this.button.mousePressed(() => console.log("Button for this tree was clicked!"));
+	}
+}
+// --- END of new Tree Class ---
+
 
 const rules = {
 	// ... (rules are unchanged) ...
@@ -44,6 +72,7 @@ const rules = {
 
 
 function rotateAroundAxis(v, axis, angleDeg) {
+	// ... (function is unchanged) ...
 	const angleRad = radians(angleDeg);
 	const cosA = cos(angleRad);
 	const sinA = sin(angleRad);
@@ -63,23 +92,26 @@ function rotateAroundAxis(v, axis, angleDeg) {
 
 function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
-	const button = createButton('Generate Next');
-	button.position(20, 20); // Sets x and y coordinates
-	button.mousePressed(generate);
+	
+	// --- MODIFIED ---
+	// We no longer call createButton or generateTreeGeometry here.
+	// Instead, we create an *instance* of our new Tree class.
+	// Let's create one tree at the center (0, 0, 0)
+	let myFirstTree = new Tree(0, 0, 0);
 
-	// We build the geometry once at the start
-	generateTreeGeometry(); 
+	// We can access its properties like this:
+	console.log(myFirstTree.generation); // Prints 0
+	console.log(myFirstTree.basePosition); // Prints the vector [0, 0, 0]
 }
 
 
 /**
  * Adds a cylinder mesh to a p5.Geometry object.
  * ...
- * @param {p5.Color} colorStart The color for the bottom vertices.
- * @param {p5.Color} colorEnd The color for the top vertices.
+ * (This function is unchanged)
  */
 function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, colorEnd) {
-    
+	// ... (function is unchanged) ...
 	// --- 1. Calculate Orientation Vectors ---
 	const axis = p5.Vector.sub(endPos, startPos);
 	axis.normalize();
@@ -155,6 +187,8 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 	}
 }
 
+
+// This function will be moved in Subtask 2
 function generate() {
 	generation++;
 	let nextSentence = [];
@@ -177,17 +211,15 @@ function generate() {
 }
 
 
-//
-// --- function generateTreeGeometry ---
-//
+// This function will be moved in Subtask 2
 function generateTreeGeometry() {
 	treeGeometry = new p5.Geometry();
-	let currentPosition = createVector(0, 0, 0);
+	let currentPosition = createVector(0, 0, 0); // This will change to use this.basePosition
 	let stack = [];
     
 	const brownColor = color(139, 69, 19);       // Dark bark brown
 	const newGrowthColor = color(210, 180, 140); // Light tan/beige for new branches
-	const maxWidth = axiom[0].params[1];         // Max width is the starting width
+	const maxWidth = axiom[0].params[1];         // This will use this.maxWidth
 
 	let currentWidth = maxWidth; 
     
@@ -210,7 +242,7 @@ function generateTreeGeometry() {
 	};
     
 
-	for (const module of sentence) {
+	for (const module of sentence) { // This will use this.sentence
 		switch (module.char) {
 			case '!': // Set line width
 				currentWidth = module.params[0];
@@ -288,8 +320,6 @@ function generateTreeGeometry() {
 	treeGeometry.computeNormals();
 }
 
-// ... (drawFractal, draw functions unchanged for now) ...
-
 
 function drawFractal() {
 	background(50);
@@ -303,13 +333,10 @@ function drawFractal() {
 	ambientLight(300);
 	//directionalLight(255, 255, 255, 0.5, 0.5, -1);
 	
-	// Use normalMaterial to visualize the geometry normals
-	// This is great for debugging 3D shapes.
-	//normalMaterial();
 	noStroke(); // Hide the wireframe
 	
 	// Render the pre-built 3D model
-	if (treeGeometry) {
+	if (treeGeometry) { // This will become if (myFirstTree.treeGeometry)
 		model(treeGeometry);
 	}
 }
