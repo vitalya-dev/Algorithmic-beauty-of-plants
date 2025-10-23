@@ -62,7 +62,7 @@ function rotateAroundAxis(v, axis, angleDeg) {
 
 
 function setup() {
-	createCanvas(600, 600, WEBGL);
+	createCanvas(windowWidth, windowHeight, WEBGL);
 	const button = createButton('Generate Next');
 	button.mousePressed(generate);
 
@@ -295,7 +295,7 @@ function drawFractal() {
 	resetMatrix();
 	
 	// Move the starting point down and rotate for a better view
-	translate(0, 200, 0); 
+	translate(0, height / 3, 0); 
 	rotateX(-PI / 2); // Rotate to see it standing up, as it's built along -Z
 	
 	// Add some lighting
@@ -316,4 +316,8 @@ function drawFractal() {
 function draw() {
 	orbitControl();
 	drawFractal();
+}
+
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
 }
