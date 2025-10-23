@@ -10,12 +10,10 @@ const wr = 0.707; // Width decrease rate
 const JITTER_DEG = 60;                 // max jitter ±30°
 const jitter = (amp = JITTER_DEG) => (Math.random() * 2 - 1) * amp;
 
-// --- REMOVED GLOBAL VARIABLES ---
-// let axiom = ... (moved)
-// let sentence = ... (moved)
-// let generation = ... (moved)
-// let treeGeometry; (moved)
-// let button; (moved)
+// ... (Constants r1, r2, a0, etc. are unchanged) ...
+// ... (Jitter setup is unchanged) ...
+
+let myFirstTree; // <-- ADDED: A global variable to hold our tree
 
 // --- NEW Tree Class ---
 class Tree {
@@ -34,16 +32,155 @@ class Tree {
 
 		// 4. Each tree gets its own button
 		this.button = createButton('Generate Next');
-		this.button.position(20, 20); // Still static for now, we'll fix this in Subtask 4
+		this.button.position(20, 20); // Still static
 		
-		// We'll make the button call this.generate (which we'll create in Subtask 2)
-		// this.button.mousePressed(() => this.generate()); 
-		// For now, we'll just log a message
-		this.button.mousePressed(() => console.log("Button for this tree was clicked!"));
+		// --- MODIFIED ---
+		// Tell the button to call THIS tree's generate method
+		this.button.mousePressed(() => this.generate());
+		
+		// --- ADDED ---
+		// Build the initial geometry (Gen 0)
+		this.generateTreeGeometry();
 	}
-}
-// --- END of new Tree Class ---
+	
+	// --- MOVED FUNCTION ---
+	generate() {
+		// Use 'this' to access class properties
+		this.generation++;
+		let nextSentence = [];
+		
+		for (const module of this.sentence) { // Use this.sentence
+			const rule = rules[module.char];
+			if (rule) {
+				const newModules = rule(...module.params);
+				nextSentence.push(...newModules);
+			} else {
+				nextSentence.push(module);
+			}
+		}
+		this.sentence = nextSentence; // Use this.sentence
 
+		console.log(`Generation ${this.generation}:`, this.sentence); 
+		
+		// Re-build THIS tree's geometry
+		this.generateTreeGeometry(); // Use this.generateTreeGeometry
+	}
+
+	// --- MOVED FUNCTION ---
+	generateTreeGeometry() {
+		// Use 'this' to access class properties
+		this.treeGeometry = new p5.Geometry(); // Use this.treeGeometry
+		
+		// --- MODIFIED ---
+		// Start at the tree's base position
+		let currentPosition = this.basePosition.copy(); 
+		let stack = [];
+		
+		const brownColor = color(139, 69, 19);
+		const newGrowthColor = color(210, 180, 140);
+		
+		// Use this.maxWidth
+		const maxWidth = this.maxWidth;
+		let currentWidth = this.maxWidth; 
+		
+		let heading = createVector(0, 0, -1);
+		let up = createVector(0, 1, 0);
+		let left = createVector(-1, 0, 0); 
+		
+		// Rotation functions (these are fine as nested functions)
+		const applyYaw = (angle) => {
+			heading = rotateAroundAxis(heading, up, angle);
+			left = rotateAroundAxis(left, up, angle);
+		};
+		const applyPitch = (angle) => {
+			heading = rotateAroundAxis(heading, left, angle);
+			up = rotateAroundAxis(up, left, angle);
+		};
+		const applyRoll = (angle) => {
+			left = rotateAroundAxis(left, heading, angle);
+			up = rotateAroundAxis(up, heading, angle);
+		};
+		
+		// Use this.sentence
+		for (const module of this.sentence) {
+			switch (module.char) {
+				case '!':
+					currentWidth = module.params[0];
+					break;
+				
+				case 'F':
+					const len = module.params[0];
+					const radius = currentWidth / 2;
+					
+					const startPos = currentPosition.copy();
+					const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
+					
+					const colorT_Start = map(currentWidth, 0, maxWidth, 1, 0);
+					const colorStart = lerpColor(brownColor, newGrowthColor, colorT_Start);
+					
+					const nextWidth = currentWidth * wr;
+					const colorT_End = map(nextWidth, 0, maxWidth, 1, 0);
+					const colorEnd = lerpColor(brownColor, newGrowthColor, colorT_End);
+
+					// Add cylinder to THIS tree's geometry
+					addCylinder(this.treeGeometry, startPos, endPos, radius, 6, colorStart, colorEnd);
+					
+					currentPosition = endPos;
+					break;
+				
+				// ... (cases '+', '-', '&', '^', '/', '\', '$' are unchanged) ...
+				case '+': // Turn Right (Yaw)
+					applyYaw(-module.params[0]);
+					break;
+				case '-': // Turn Left (Yaw)
+					applyYaw(module.params[0]);
+					break;
+				case '&': // Pitch Down
+					applyPitch(module.params[0]);
+					break;
+				case '^': // Pitch Up
+					applyPitch(-module.params[0]);
+					break;
+				case '/': // Roll Right
+					applyRoll(module.params[0]);
+					break;
+				case '\\': // Roll Left
+					applyRoll(-module.params[0]);
+					break;
+				case '$': // Roll 180 degrees
+					applyRoll(-180);
+					break;
+
+				case '[':
+					stack.push({
+						pos: currentPosition.copy(),
+						heading: heading.copy(),
+						up: up.copy(),
+						left: left.copy(),
+						width: currentWidth 
+					});
+					break;
+				case ']':
+					const state = stack.pop();
+					currentPosition = state.pos;
+					heading = state.heading;
+					up = state.up;
+					left = state.left;
+					currentWidth = state.width;
+					break;
+			}
+		}
+		
+		// Recalculate normals for THIS tree's geometry
+		this.treeGeometry.computeNormals();
+	}
+	
+}
+// --- END of Tree Class ---
+
+
+// ... (rules object is unchanged) ...
+// ... (rotateAroundAxis function is unchanged) ...
 
 const rules = {
 	// ... (rules are unchanged) ...
@@ -90,26 +227,16 @@ function rotateAroundAxis(v, axis, angleDeg) {
 }
 
 
+
 function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
 	
 	// --- MODIFIED ---
-	// We no longer call createButton or generateTreeGeometry here.
-	// Instead, we create an *instance* of our new Tree class.
-	// Let's create one tree at the center (0, 0, 0)
-	let myFirstTree = new Tree(0, 0, 0);
-
-	// We can access its properties like this:
-	console.log(myFirstTree.generation); // Prints 0
-	console.log(myFirstTree.basePosition); // Prints the vector [0, 0, 0]
+	// Create our tree and store it in the global variable
+	myFirstTree = new Tree(0, 0, 0); 
 }
 
 
-/**
- * Adds a cylinder mesh to a p5.Geometry object.
- * ...
- * (This function is unchanged)
- */
 function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, colorEnd) {
 	// ... (function is unchanged) ...
 	// --- 1. Calculate Orientation Vectors ---
@@ -187,138 +314,8 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 	}
 }
 
-
-// This function will be moved in Subtask 2
-function generate() {
-	generation++;
-	let nextSentence = [];
-	
-	for (const module of sentence) {
-		const rule = rules[module.char];
-		if (rule) {
-			const newModules = rule(...module.params);
-			nextSentence.push(...newModules);
-		} else {
-			nextSentence.push(module);
-		}
-	}
-	sentence = nextSentence;
-
-	console.log(`Generation ${generation}:`, sentence); 
-	
-	// Re-build the geometry every time we generate
-	generateTreeGeometry();
-}
-
-
-// This function will be moved in Subtask 2
-function generateTreeGeometry() {
-	treeGeometry = new p5.Geometry();
-	let currentPosition = createVector(0, 0, 0); // This will change to use this.basePosition
-	let stack = [];
-    
-	const brownColor = color(139, 69, 19);       // Dark bark brown
-	const newGrowthColor = color(210, 180, 140); // Light tan/beige for new branches
-	const maxWidth = axiom[0].params[1];         // This will use this.maxWidth
-
-	let currentWidth = maxWidth; 
-    
-	let heading = createVector(0, 0, -1);
-	let up = createVector(0, 1, 0);
-	let left = createVector(-1, 0, 0); 
-    
-	// Rotation functions (applyYaw, applyPitch, applyRoll)
-	const applyYaw = (angle) => {
-		heading = rotateAroundAxis(heading, up, angle);
-		left = rotateAroundAxis(left, up, angle);
-	};
-	const applyPitch = (angle) => {
-		heading = rotateAroundAxis(heading, left, angle);
-		up = rotateAroundAxis(up, left, angle);
-	};
-	const applyRoll = (angle) => {
-		left = rotateAroundAxis(left, heading, angle);
-		up = rotateAroundAxis(up, heading, angle);
-	};
-    
-
-	for (const module of sentence) { // This will use this.sentence
-		switch (module.char) {
-			case '!': // Set line width
-				currentWidth = module.params[0];
-				break;
-            
-			case 'F': // Move forward and draw cylinder
-				const len = module.params[0];
-				const radius = currentWidth / 2;
-                
-				// 1. Define the start and end of the cylinder
-				const startPos = currentPosition.copy();
-				const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
-                
-				// --- MODIFIED ---
-				// Calculate color for the START of the segment
-				const colorT_Start = map(currentWidth, 0, maxWidth, 1, 0);
-				const colorStart = lerpColor(brownColor, newGrowthColor, colorT_Start);
-                
-				// Calculate color for the END of the segment
-				const nextWidth = currentWidth * wr; // Use the width reducer 'wr'
-				const colorT_End = map(nextWidth, 0, maxWidth, 1, 0);
-				const colorEnd = lerpColor(brownColor, newGrowthColor, colorT_End);
-				// --- END OF MODIFIED CODE ---
-
-				// 2. Add the cylinder mesh to our geometry object
-				// --- MODIFIED CALL ---
-				addCylinder(treeGeometry, startPos, endPos, radius, 6, colorStart, colorEnd);
-                
-				// 3. Move the turtle to the new position
-				currentPosition = endPos;
-				break;
-            
-			case '+': // Turn Right (Yaw)
-				applyYaw(-module.params[0]);
-				break;
-			case '-': // Turn Left (Yaw)
-				applyYaw(module.params[0]);
-				break;
-			case '&': // Pitch Down
-				applyPitch(module.params[0]);
-				break;
-			case '^': // Pitch Up
-				applyPitch(-module.params[0]);
-				break;
-			case '/': // Roll Right
-				applyRoll(module.params[0]);
-				break;
-			case '\\': // Roll Left
-				applyRoll(-module.params[0]);
-				break;
-			case '$': // Roll 180 degrees
-				applyRoll(-180);
-				break;
-			case '[': // Push state
-				stack.push({
-					pos: currentPosition.copy(),
-					heading: heading.copy(),
-					up: up.copy(),
-					left: left.copy(),
-					width: currentWidth 
-				});
-				break;
-			case ']': // Pop state
-				const state = stack.pop();
-				currentPosition = state.pos;
-				heading = state.heading;
-				up = state.up;
-				left = state.left;
-				currentWidth = state.width;
-				break;
-		}
-	}
-    
-	// Recalculate normals
-	treeGeometry.computeNormals();
-}
+// --- (The old global 'generate' function is now GONE) ---
+// --- (The old global 'generateTreeGeometry' function is now GONE) ---
 
 
 function drawFractal() {
@@ -327,17 +324,15 @@ function drawFractal() {
 	
 	// Move the starting point down and rotate for a better view
 	translate(0, height / 3, 0); 
-	rotateX(-PI / 2); // Rotate to see it standing up, as it's built along -Z
+	rotateX(-PI / 2);
 	
-	// Add some lighting
 	ambientLight(300);
-	//directionalLight(255, 255, 255, 0.5, 0.5, -1);
+	noStroke(); 
 	
-	noStroke(); // Hide the wireframe
-	
-	// Render the pre-built 3D model
-	if (treeGeometry) { // This will become if (myFirstTree.treeGeometry)
-		model(treeGeometry);
+	// --- MODIFIED ---
+	// Render the pre-built 3D model from our tree object
+	if (myFirstTree && myFirstTree.treeGeometry) {
+		model(myFirstTree.treeGeometry);
 	}
 }
 
@@ -345,6 +340,7 @@ function draw() {
 	orbitControl();
 	drawFractal();
 }
+
 
 function windowResized() {
 	resizeCanvas(windowWidth, windowHeight);
