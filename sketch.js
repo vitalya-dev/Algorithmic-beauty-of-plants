@@ -64,6 +64,7 @@ function rotateAroundAxis(v, axis, angleDeg) {
 function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
 	const button = createButton('Generate Next');
+	button.position(20, 20); // Sets x and y coordinates
 	button.mousePressed(generate);
 
 	// We build the geometry once at the start
