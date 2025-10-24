@@ -13,7 +13,7 @@ const jitter = (amp = JITTER_DEG) => (Math.random() * 2 - 1) * amp;
 // ... (Constants r1, r2, a0, etc. are unchanged) ...
 // ... (Jitter setup is unchanged) ...
 
-let myFirstTree; // <-- ADDED: A global variable to hold our tree
+let trees = []; // <-- MODIFIED: An array to hold all our trees
 
 // --- NEW Tree Class ---
 class Tree {
@@ -174,6 +174,27 @@ class Tree {
 		// Recalculate normals for THIS tree's geometry
 		this.treeGeometry.computeNormals();
 	}
+
+	draw() {
+		// The push() and pop() functions save and restore the drawing state.
+		// This is critical for drawing multiple objects. It means the
+		// translate/rotate for THIS tree won't affect the NEXT tree.
+		push();
+		
+		// Move the starting point down and rotate for a better view
+		// Note: The tree itself is built at (0,0,0) relative to its basePosition.
+		// The 'translate(0, height / 3, 0)' is a camera-like move,
+		// so we'll do it in the main draw() loop instead.
+		
+		rotateX(-PI / 2); // Rotate to see it standing up
+		
+		// Render the pre-built 3D model
+		if (this.treeGeometry) {
+			model(this.treeGeometry);
+		}
+		
+		pop();
+	}
 	
 }
 // --- END of Tree Class ---
@@ -233,7 +254,7 @@ function setup() {
 	
 	// --- MODIFIED ---
 	// Create our tree and store it in the global variable
-	myFirstTree = new Tree(0, 0, 0); 
+	trees.push(new Tree(0, 0, 0));
 }
 
 
@@ -314,31 +335,27 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 	}
 }
 
-// --- (The old global 'generate' function is now GONE) ---
-// --- (The old global 'generateTreeGeometry' function is now GONE) ---
 
-
-function drawFractal() {
-	background(50);
-	resetMatrix();
-	
-	// Move the starting point down and rotate for a better view
-	translate(0, height / 3, 0); 
-	rotateX(-PI / 2);
-	
-	ambientLight(300);
-	noStroke(); 
-	
-	// --- MODIFIED ---
-	// Render the pre-built 3D model from our tree object
-	if (myFirstTree && myFirstTree.treeGeometry) {
-		model(myFirstTree.treeGeometry);
-	}
-}
 
 function draw() {
-	orbitControl();
-	drawFractal();
+	background(50);
+	orbitControl(); // Let the user move the camera
+	
+	// --- ADDED: Set up the scene lights ---
+	ambientLight(300);
+	noStroke(); 
+
+	// --- ADDED: Global translation ---
+	// This moves the "ground" down, so we can see the tree(s)
+	translate(0, height / 3, 0); 
+	
+	// --- MODIFIED ---
+	// Tell each tree to draw itself
+	for (let tree of trees) {
+		tree.draw();
+	}
+	
+	// In the next step, we'll add code here to update the button positions
 }
 
 
