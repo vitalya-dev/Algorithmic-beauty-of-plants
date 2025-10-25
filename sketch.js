@@ -73,7 +73,7 @@ class Tree {
 		
 		// --- MODIFIED ---
 		// Start at the tree's base position
-		let currentPosition = this.basePosition.copy(); 
+		let currentPosition = createVector(0, 0, 0);
 		let stack = [];
 		
 		const brownColor = color(139, 69, 19);
