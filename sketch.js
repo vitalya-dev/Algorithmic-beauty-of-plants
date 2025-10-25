@@ -176,21 +176,13 @@ class Tree {
 	}
 
 	draw() {
-		// The push() and pop() functions save and restore the drawing state.
-		// This is critical for drawing multiple objects. It means the
-		// translate/rotate for THIS tree won't affect the NEXT tree.
+		// push() and pop() save/restore the drawing state
 		push();
 		
-		// --- *** ADDED LINE *** ---
 		// 1. Move to the tree's position in WORLD SPACE
 		translate(this.basePosition.x, this.basePosition.y, this.basePosition.z);
-		// --- *** END ADDITION *** ---
-
-		// 2. Rotate to see it standing up
-		// (We will move this to the main draw() loop in the next subtask)
-		rotateX(-PI / 2); 
 		
-		// 3. Render the pre-built 3D model (which is in OBJECT SPACE)
+		// 2. Render the pre-built 3D model (which is in OBJECT SPACE)
 		if (this.treeGeometry) {
 			model(this.treeGeometry);
 		}
@@ -347,17 +339,19 @@ function draw() {
 	ambientLight(300);
 	noStroke(); 
 
-	// --- ADDED: Global translation ---
-	// This moves the "ground" down, so we can see the tree(s)
+	// --- SETUP THE SCENE/VIEW ---
+	// 1. Move the "ground" down, so we can see the tree(s)
 	translate(0, height / 3, 0); 
+	// 2. Rotate the whole world to get a better view
+	rotateX(-PI / 2); 
+	// --- END SCENE SETUP ---
+	
 	
 	// --- MODIFIED ---
 	// Tell each tree to draw itself
 	for (let tree of trees) {
 		tree.draw();
 	}
-	
-	// In the next step, we'll add code here to update the button positions
 }
 
 
