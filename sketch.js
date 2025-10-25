@@ -31,8 +31,8 @@ class Tree {
 		this.treeGeometry = null; // Will be a p5.Geometry object
 
 		// 4. Each tree gets its own button
-		this.button = createButton('Generate Next');
-		this.button.position(20, 20); // Still static
+		this.button = createButton('Generate');
+		//this.button.position(20, 20); // Still static
 		
 		// --- MODIFIED ---
 		// Tell the button to call THIS tree's generate method
@@ -176,6 +176,11 @@ class Tree {
 	}
 
 	draw() {
+		//Position tree's button.
+		let screenPos = worldToScreen(this.basePosition);
+		this.button.position(screenPos.x - this.button.width / 2, screenPos.y + 10);
+		
+
 		// push() and pop() save/restore the drawing state
 		push();
 		
