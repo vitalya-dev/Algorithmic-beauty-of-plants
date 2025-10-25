@@ -181,14 +181,16 @@ class Tree {
 		// translate/rotate for THIS tree won't affect the NEXT tree.
 		push();
 		
-		// Move the starting point down and rotate for a better view
-		// Note: The tree itself is built at (0,0,0) relative to its basePosition.
-		// The 'translate(0, height / 3, 0)' is a camera-like move,
-		// so we'll do it in the main draw() loop instead.
+		// --- *** ADDED LINE *** ---
+		// 1. Move to the tree's position in WORLD SPACE
+		translate(this.basePosition.x, this.basePosition.y, this.basePosition.z);
+		// --- *** END ADDITION *** ---
+
+		// 2. Rotate to see it standing up
+		// (We will move this to the main draw() loop in the next subtask)
+		rotateX(-PI / 2); 
 		
-		rotateX(-PI / 2); // Rotate to see it standing up
-		
-		// Render the pre-built 3D model
+		// 3. Render the pre-built 3D model (which is in OBJECT SPACE)
 		if (this.treeGeometry) {
 			model(this.treeGeometry);
 		}
