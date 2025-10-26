@@ -17,9 +17,16 @@ let trees = []; // <-- MODIFIED: An array to hold all our trees
 
 // --- NEW Tree Class ---
 class Tree {
-	constructor(x, y, z) {
+	constructor(x, y, z, hondaParams = {}) {
 		// 1. Store the tree's base position
 		this.basePosition = createVector(x, y, z);
+
+		this.r1 = hondaParams.r1 || 0.9;
+		this.r2 = hondaParams.r2 || 0.6;
+		this.a0 = hondaParams.a0 || 45;
+		this.a2 = hondaParams.a2 || 45;
+		this.s = hondaParams.s || 137.5;
+		this.wr = hondaParams.wr || 0.707;
 
 		// 2. Each tree gets its own L-system state
 		this.axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
@@ -32,13 +39,10 @@ class Tree {
 
 		// 4. Each tree gets its own button
 		this.button = createButton('Generate');
-		//this.button.position(20, 20); // Still static
 		
-		// --- MODIFIED ---
 		// Tell the button to call THIS tree's generate method
 		this.button.mousePressed(() => this.generate());
 		
-		// --- ADDED ---
 		// Build the initial geometry (Gen 0)
 		this.generateTreeGeometry();
 	}
@@ -254,6 +258,7 @@ function setup() {
 	// --- MODIFIED ---
 	// Create our tree and store it in the global variable
 	trees.push(new Tree(0, 0, 0));
+	trees.push(new Tree(200, 0, 0));
 }
 
 
