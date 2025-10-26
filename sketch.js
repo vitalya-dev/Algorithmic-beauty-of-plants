@@ -79,7 +79,7 @@ class Tree {
 		let nextSentence = [];
 		
 		for (const module of this.sentence) { // Use this.sentence
-			const rule = rules[module.char];
+			const rule = this.rules[module.char]; // Use this.rules
 			if (rule) {
 				const newModules = rule(...module.params);
 				nextSentence.push(...newModules);
@@ -147,7 +147,7 @@ class Tree {
 					const colorT_Start = map(currentWidth, 0, maxWidth, 1, 0);
 					const colorStart = lerpColor(brownColor, newGrowthColor, colorT_Start);
 					
-					const nextWidth = currentWidth * wr;
+					const nextWidth = currentWidth * this.wr;
 					const colorT_End = map(nextWidth, 0, maxWidth, 1, 0);
 					const colorEnd = lerpColor(brownColor, newGrowthColor, colorT_End);
 
