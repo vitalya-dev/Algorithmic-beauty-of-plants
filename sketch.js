@@ -1,17 +1,6 @@
-// Constants for the Honda tree model from the book
-const r1 = 0.9; // Contraction ratio for the trunk
-const r2 = 0.6; // Contraction ratio for branches
-const a0 = 45;  // Branching angle from the trunk
-const a2 = 45;  // Branching angle for lateral axes
-const s = 137.5; // Divergence angle
-const wr = 0.707; // Width decrease rate
-
 // Jitter setup
 const JITTER_DEG = 60;                 // max jitter ±30°
 const jitter = (amp = JITTER_DEG) => (Math.random() * 2 - 1) * amp;
-
-// ... (Constants r1, r2, a0, etc. are unchanged) ...
-// ... (Jitter setup is unchanged) ...
 
 let trees = []; // <-- MODIFIED: An array to hold all our trees
 
@@ -227,36 +216,6 @@ class Tree {
 }
 // --- END of Tree Class ---
 
-
-// ... (rules object is unchanged) ...
-// ... (rotateAroundAxis function is unchanged) ...
-
-const rules = {
-	// ... (rules are unchanged) ...
-	A: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '&', params: [a0] }, { char: 'B', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: '/', params: [s] }, { char: 'A', params: [l * r1, w * wr] }
-	],
-	B: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '/', params: [jitter()] },
-		{ char: '-', params: [a2] }, { char: '$' },
-		{ char: 'C', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: '/', params: [jitter()] },
-		{ char: 'C', params: [l * r1, w * wr] }
-	],
-	C: (l, w) => [
-		{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-		{ char: '/', params: [jitter()] },
-		{ char: '+', params: [a2] }, { char: '$' },
-		{ char: 'B', params: [l * r2, w * wr] }, { char: ']' },
-		{ char: '/', params: [jitter()] },
-		{ char: 'B', params: [l * r1, w * wr] }
-	]
-};
-
-
 function rotateAroundAxis(v, axis, angleDeg) {
 	// ... (function is unchanged) ...
 	const angleRad = radians(angleDeg);
@@ -282,8 +241,46 @@ function setup() {
 	
 	// --- MODIFIED ---
 	// Create our tree and store it in the global variable
-	trees.push(new Tree(0, 0, 0));
-	trees.push(new Tree(200, 0, 0));
+	trees.push(new Tree(0, 0, 0,
+		{
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.6,   // Longer main branches
+			a0: 45,    // Narrower trunk branching
+			a2: 45,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
+		}
+	));
+	trees.push(new Tree(300, 0, 0, 
+		{
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.9,   // Longer main branches
+			a0: 45,    // Narrower trunk branching
+			a2: 45,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
+		}
+	));
+	trees.push(new Tree(600, 0, 0,
+		{
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.8,   // Longer main branches
+			a0: 45,    // Narrower trunk branching
+			a2: 45,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
+		}
+	));
+	trees.push(new Tree(900, 0, 0, 
+		{
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.7,   // Longer main branches
+			a0: 30,    // Narrower trunk branching
+			a2: -30,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
+		}
+	));
 }
 
 
