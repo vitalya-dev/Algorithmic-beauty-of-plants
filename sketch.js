@@ -26,18 +26,14 @@ class Tree {
 			],
 			B: (l, w) => [
 				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-				{ char: '/', params: [jitter()] },
 				{ char: '-', params: [this.a2] }, { char: '$' },
 				{ char: 'C', params: [l * this.r2, w * this.wr] }, { char: ']' },
-				{ char: '/', params: [jitter()] },
 				{ char: 'C', params: [l * this.r1, w * this.wr] }
 			],
 			C: (l, w) => [
 				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-				{ char: '/', params: [jitter()] },
 				{ char: '+', params: [this.a2] }, { char: '$' },
 				{ char: 'B', params: [l * this.r2, w * this.wr] }, { char: ']' },
-				{ char: '/', params: [jitter()] },
 				{ char: 'B', params: [l * this.r1, w * this.wr] }
 			]
 		};
@@ -165,9 +161,26 @@ class Tree {
 				case '\\': // Roll Left
 					applyRoll(-module.params[0]);
 					break;
-				case '$': // Roll 180 degrees
-					applyRoll(-180);
+				case '$': {
+					// choose gravity; ABOP uses +Y as gravity. If your world uses Z-up,
+					// switch to (0,0,1). You rotateX(-PI/2), so gravity in world space is +Y:
+					const g = createVector(0, 0, -1).normalize();
+
+					// Compute new left axis as g × H (perpendicular to gravity and heading)
+					let newLeft = p5.Vector.cross(g, heading).normalize();
+
+					// If heading ~ // to g, fall back to current left to avoid NaNs
+					if (newLeft.magSq() < 1e-8) {
+						break; // no change; heading nearly vertical
+					}
+
+					// Then new up is H × newLeft
+					let newUp = p5.Vector.cross(heading, newLeft).normalize();
+
+					left = newLeft;
+					up = newUp;
 					break;
+				}
 
 				case '[':
 					stack.push({
