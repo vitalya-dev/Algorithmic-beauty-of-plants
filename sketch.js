@@ -1,8 +1,4 @@
-// Jitter setup
-const JITTER_DEG = 60;                 // max jitter ±30°
-const jitter = (amp = JITTER_DEG) => (Math.random() * 2 - 1) * amp;
-
-let trees = []; // <-- MODIFIED: An array to hold all our trees
+let trees = []; // An array to hold all our trees
 
 // --- NEW Tree Class ---
 class Tree {
@@ -85,7 +81,6 @@ class Tree {
 		// Use 'this' to access class properties
 		this.treeGeometry = new p5.Geometry(); // Use this.treeGeometry
 		
-		// --- MODIFIED ---
 		// Start at the tree's base position
 		let currentPosition = createVector(0, 0, 0);
 		let stack = [];
@@ -113,6 +108,24 @@ class Tree {
 		const applyRoll = (angle) => {
 			left = rotateAroundAxis(left, heading, angle);
 			up = rotateAroundAxis(up, heading, angle);
+		};
+
+		const applyLevelingRoll = () => {
+			const g = createVector(0, 0, -1).normalize();
+
+			// Compute new left axis as g × H (perpendicular to gravity and heading)
+			let newLeft = p5.Vector.cross(g, heading).normalize();
+
+			// If heading ~ // to g, fall back to current left to avoid NaNs
+			if (newLeft.magSq() < 1e-8) {
+				return; // no change; heading nearly vertical
+			}
+
+			// Then new up is H × newLeft
+			let newUp = p5.Vector.cross(heading, newLeft).normalize();
+
+			left = newLeft;
+			up = newUp;
 		};
 		
 		// Use this.sentence
@@ -162,23 +175,7 @@ class Tree {
 					applyRoll(-module.params[0]);
 					break;
 				case '$': {
-					// choose gravity; ABOP uses +Y as gravity. If your world uses Z-up,
-					// switch to (0,0,1). You rotateX(-PI/2), so gravity in world space is +Y:
-					const g = createVector(0, 0, -1).normalize();
-
-					// Compute new left axis as g × H (perpendicular to gravity and heading)
-					let newLeft = p5.Vector.cross(g, heading).normalize();
-
-					// If heading ~ // to g, fall back to current left to avoid NaNs
-					if (newLeft.magSq() < 1e-8) {
-						break; // no change; heading nearly vertical
-					}
-
-					// Then new up is H × newLeft
-					let newUp = p5.Vector.cross(heading, newLeft).normalize();
-
-					left = newLeft;
-					up = newUp;
+					applyLevelingRoll();
 					break;
 				}
 
@@ -252,7 +249,6 @@ function rotateAroundAxis(v, axis, angleDeg) {
 function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
 	
-	// --- MODIFIED ---
 	// Create our tree and store it in the global variable
 	trees.push(new Tree(0, 0, 0,
 		{
@@ -330,7 +326,6 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 		const topVertex = p5.Vector.add(endPos, pointOffset);
 		geom.vertices.push(topVertex);
 
-		// --- MODIFIED ---
 		// Apply start color to bottom vertex, end color to top vertex
 		geom.vertexColors.push(...colorStart._array); 
 		geom.vertexColors.push(...colorEnd._array); 
@@ -355,7 +350,6 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 	const topCapCenterIndex = geom.vertices.length;
 	geom.vertices.push(endPos.copy());
     
-	// --- MODIFIED ---
 	// Apply start color to bottom cap, end color to top cap
 	geom.vertexColors.push(...colorStart._array);
 	geom.vertexColors.push(...colorEnd._array);
@@ -392,7 +386,6 @@ function draw() {
 	// --- END SCENE SETUP ---
 	
 	
-	// --- MODIFIED ---
 	// Tell each tree to draw itself
 	for (let tree of trees) {
 		tree.draw();
