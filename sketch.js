@@ -28,6 +28,31 @@ class Tree {
 		this.s = hondaParams.s || 137.5;
 		this.wr = hondaParams.wr || 0.707;
 
+		// This lets the rules access this.r1, this.a0, etc.
+		this.rules = {
+			A: (l, w) => [
+				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
+				{ char: '&', params: [this.a0] }, { char: 'B', params: [l * this.r2, w * this.wr] }, { char: ']' },
+				{ char: '/', params: [this.s] }, { char: 'A', params: [l * this.r1, w * this.wr] }
+			],
+			B: (l, w) => [
+				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
+				{ char: '/', params: [jitter()] },
+				{ char: '-', params: [this.a2] }, { char: '$' },
+				{ char: 'C', params: [l * this.r2, w * this.wr] }, { char: ']' },
+				{ char: '/', params: [jitter()] },
+				{ char: 'C', params: [l * this.r1, w * this.wr] }
+			],
+			C: (l, w) => [
+				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
+				{ char: '/', params: [jitter()] },
+				{ char: '+', params: [this.a2] }, { char: '$' },
+				{ char: 'B', params: [l * this.r2, w * this.wr] }, { char: ']' },
+				{ char: '/', params: [jitter()] },
+				{ char: 'B', params: [l * this.r1, w * this.wr] }
+			]
+		};
+
 		// 2. Each tree gets its own L-system state
 		this.axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
 		this.sentence = this.axiom;
