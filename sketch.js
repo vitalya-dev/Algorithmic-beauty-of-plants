@@ -306,45 +306,86 @@ function rotateAroundAxis(v, axis, angleDeg) {
 function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
 	
-	// Create our tree and store it in the global variable
-	trees.push(new Tree(0, 0, 0, "honda",
+	// // Create our tree and store it in the global variable
+	// trees.push(new Tree(0, 0, 0, "honda",
+	// 	{
+	// 		r1: 0.9,   // Shorter trunk segments
+	// 		r2: 0.6,   // Longer main branches
+	// 		a0: 45,    // Narrower trunk branching
+	// 		a2: 45,    // Wider lateral branching
+	// 		s: 137.5,     // Different branching pattern (90 degrees)
+	// 		wr: 0.707    // Branches get thinner slightly slower
+	// 	}
+	// ));
+	// trees.push(new Tree(300, 0, 0, "honda",
+	// 	{
+	// 		r1: 0.9,   // Shorter trunk segments
+	// 		r2: 0.9,   // Longer main branches
+	// 		a0: 45,    // Narrower trunk branching
+	// 		a2: 45,    // Wider lateral branching
+	// 		s: 137.5,     // Different branching pattern (90 degrees)
+	// 		wr: 0.707    // Branches get thinner slightly slower
+	// 	}
+	// ));
+	// trees.push(new Tree(600, 0, 0, "honda",
+	// 	{
+	// 		r1: 0.9,   // Shorter trunk segments
+	// 		r2: 0.8,   // Longer main branches
+	// 		a0: 45,    // Narrower trunk branching
+	// 		a2: 45,    // Wider lateral branching
+	// 		s: 137.5,     // Different branching pattern (90 degrees)
+	// 		wr: 0.707    // Branches get thinner slightly slower
+	// 	}
+	// ));
+	// trees.push(new Tree(900, 0, 0, "honda",
+	// 	{
+	// 		r1: 0.9,   // Shorter trunk segments
+	// 		r2: 0.7,   // Longer main branches
+	// 		a0: 30,    // Narrower trunk branching
+	// 		a2: -30,    // Wider lateral branching
+	// 		s: 137.5,     // Different branching pattern (90 degrees)
+	// 		wr: 0.707    // Branches get thinner slightly slower
+	// 	}
+	// ));
+
+
+	// Tree 5 (Ternary, Fig 2.8a) 
+	trees.push(new Tree(0, 0, 600, 'ternary',
 		{
-			r1: 0.9,   // Shorter trunk segments
-			r2: 0.6,   // Longer main branches
-			a0: 45,    // Narrower trunk branching
-			a2: 45,    // Wider lateral branching
-			s: 137.5,     // Different branching pattern (90 degrees)
-			wr: 0.707    // Branches get thinner slightly slower
+			d1: 94.74,
+			d2: 132.63,
+			a: 18.95,
+			lr: 1.109
 		}
 	));
-	trees.push(new Tree(300, 0, 0, "honda",
+	
+	// Tree 6 (Ternary, Fig 2.8b) 
+	trees.push(new Tree(300, 0, 600, 'ternary',
 		{
-			r1: 0.9,   // Shorter trunk segments
-			r2: 0.9,   // Longer main branches
-			a0: 45,    // Narrower trunk branching
-			a2: 45,    // Wider lateral branching
-			s: 137.5,     // Different branching pattern (90 degrees)
-			wr: 0.707    // Branches get thinner slightly slower
+			d1: 137.50,
+			d2: 137.50,
+			a: 18.95,
+			lr: 1.109
 		}
 	));
-	trees.push(new Tree(600, 0, 0, "honda",
+	
+	// Tree 7 (Ternary, Fig 2.8c) 
+	trees.push(new Tree(600, 0, 600, 'ternary',
 		{
-			r1: 0.9,   // Shorter trunk segments
-			r2: 0.8,   // Longer main branches
-			a0: 45,    // Narrower trunk branching
-			a2: 45,    // Wider lateral branching
-			s: 137.5,     // Different branching pattern (90 degrees)
-			wr: 0.707    // Branches get thinner slightly slower
+			d1: 112.50,
+			d2: 157.50,
+			a: 22.50,
+			lr: 1.790
 		}
 	));
-	trees.push(new Tree(900, 0, 0, "honda",
+	
+	// Tree 8 (Ternary, Fig 2.8d) 
+	trees.push(new Tree(900, 0, 600, 'ternary',
 		{
-			r1: 0.9,   // Shorter trunk segments
-			r2: 0.7,   // Longer main branches
-			a0: 30,    // Narrower trunk branching
-			a2: -30,    // Wider lateral branching
-			s: 137.5,     // Different branching pattern (90 degrees)
-			wr: 0.707    // Branches get thinner slightly slower
+			d1: 180.00,
+			d2: 252.00,
+			a: 36.00,
+			lr: 1.070
 		}
 	));
 }
