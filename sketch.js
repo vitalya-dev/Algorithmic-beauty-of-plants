@@ -55,14 +55,53 @@ class Tree {
 
 		} else if (this.type === 'ternary') {
 			// --- Setup for Ternary model (from Figure 2.8) ---
-			// We will define these parameters and rules in the next subtask
+			// Set parameters from the 'params' object,
+			// using defaults from Figure 2.8a / Table 2.3 [cite: 54, 55, 71]
+			this.d1 = params.d1 || 94.74;   // divergence angle 1
+			this.d2 = params.d2 || 132.63;  // divergence angle 2
+			this.a = params.a || 18.95;     // branching angle
+			this.lr = params.lr || 1.109;   // elongation rate
+			this.vr = params.vr || 1.732;   // width increase rate [cite: 55]
+
+			// Note: The 'A' rule is parameter-less
+			this.rules = {
+				// p1: A -> !(vr) F(50) [branch1] / (d1) [branch2] / (d2) [branch3] 
+				A: () => [
+					{ char: '!', params: [this.vr] }, { char: 'F', params: [50] },
+					{ char: '[' }, { char: '&', params: [this.a] }, { char: 'F', params: [50] }, { char: 'A', params: [] }, { char: ']' },
+					{ char: '/', params: [this.d1] },
+					{ char: '[' }, { char: '&', params: [this.a] }, { char: 'F', params: [50] }, { char: 'A', params: [] }, { char: ']' },
+					{ char: '/', params: [this.d2] },
+					{ char: '[' }, { char: '&', params: [this.a] }, { char: 'F', params: [50] }, { char: 'A', params: [] }, { char: ']' }
+				],
+				
+				// p2: F(l) -> F(l * lr) 
+				F: (l) => [
+					{ char: 'F', params: [l * this.lr] }
+				],
+				
+				// p3: !(w) -> !(w * vr) 
+				'!': (w) => [
+					{ char: '!', params: [w * this.vr] }
+				]
+			};
+
+			// Axiom (w) from Figure 2.8: !(1)F(200)/(45)A 
+			const initialWidth = 1;
+			const initialLength = 200;
+			const initialAngle = 45;
+
+			this.axiom = [
+				{ char: '!', params: [initialWidth] },
+				{ char: 'F', params: [initialLength] },
+				{ char: '/', params: [initialAngle] },
+				{ char: 'A', params: [] }
+			];
 			
-			// Placeholder values for now
-			this.rules = {};
-			this.axiom = []; 
 			this.sentence = this.axiom;
 			this.generation = 0;
-			this.maxWidth = 1; 
+			// The max width for color mapping is the initial width of the trunk
+			this.maxWidth = initialWidth;
 		}
 		// --- End of Type-based setup ---
 
