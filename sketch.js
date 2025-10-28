@@ -2,53 +2,71 @@ let trees = []; // An array to hold all our trees
 
 // --- NEW Tree Class ---
 class Tree {
-	constructor(x, y, z, hondaParams = {}) {
+	constructor(x, y, z, type = 'honda', params = {}) { // <-- MODIFIED: Added 'type' and renamed 'params'
 		// 1. Store the tree's base position
 		this.basePosition = createVector(x, y, z);
-
-		this.r1 = hondaParams.r1 || 0.9;
-		this.r2 = hondaParams.r2 || 0.6;
-		this.a0 = hondaParams.a0 || 45;
-		this.a2 = hondaParams.a2 || 45;
-		this.s = hondaParams.s || 137.5;
-		this.wr = hondaParams.wr || 0.707;
-
-		// This lets the rules access this.r1, this.a0, etc.
-		this.rules = {
-			A: (l, w) => [
-				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-				{ char: '&', params: [this.a0] }, { char: 'B', params: [l * this.r2, w * this.wr] }, { char: ']' },
-				{ char: '/', params: [this.s] }, { char: 'A', params: [l * this.r1, w * this.wr] }
-			],
-			B: (l, w) => [
-				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-				{ char: '-', params: [this.a2] }, { char: '$' },
-				{ char: 'C', params: [l * this.r2, w * this.wr] }, { char: ']' },
-				{ char: 'C', params: [l * this.r1, w * this.wr] }
-			],
-			C: (l, w) => [
-				{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
-				{ char: '+', params: [this.a2] }, { char: '$' },
-				{ char: 'B', params: [l * this.r2, w * this.wr] }, { char: ']' },
-				{ char: 'B', params: [l * this.r1, w * this.wr] }
-			]
-		};
-
-		// 2. Each tree gets its own L-system state
-		this.axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
-		this.sentence = this.axiom;
-		this.generation = 0;
-		this.maxWidth = this.axiom[0].params[1]; // Max width is the starting width
+		this.type = type; // <-- NEW: Store the type
 
 		// 3. Each tree gets its own 3D model
 		this.treeGeometry = null; // Will be a p5.Geometry object
 
 		// 4. Each tree gets its own button
-		this.button = createButton('Generate');
+		this.button = createButton(`Generate ${this.type}`); // <-- MODIFIED: Button label
 		
 		// Tell the button to call THIS tree's generate method
 		this.button.mousePressed(() => this.generate());
-		
+
+		// --- NEW: Type-based setup ---
+		if (this.type === 'honda') {
+			// --- Setup for Honda (Sympodial) model ---
+			this.r1 = params.r1 || 0.9;
+			this.r2 = params.r2 || 0.6;
+			this.a0 = params.a0 || 45; // Renamed from a0 to match your code
+			this.a2 = params.a2 || 45;
+			this.s = params.s || 137.5; // 's' is 's' (spread angle)
+			this.wr = params.wr || 0.707;
+
+			// This lets the rules access this.r1, this.a0, etc.
+			this.rules = {
+				A: (l, w) => [
+					{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
+					{ char: '&', params: [this.a0] }, { char: 'B', params: [l * this.r2, w * this.wr] }, { char: ']' },
+					{ char: '/', params: [this.s] }, { char: 'A', params: [l * this.r1, w * this.wr] }
+				],
+				B: (l, w) => [
+					{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
+					{ char: '-', params: [this.a2] }, { char: '$' },
+					{ char: 'C', params: [l * this.r2, w * this.wr] }, { char: ']' },
+					{ char: 'C', params: [l * this.r1, w * this.wr] }
+				],
+				C: (l, w) => [
+					{ char: '!', params: [w] }, { char: 'F', params: [l] }, { char: '[' },
+					{ char: '+', params: [this.a2] }, { char: '$' },
+					{ char: 'B', params: [l * this.r2, w * this.wr] }, { char: ']' },
+					{ char: 'B', params: [l * this.r1, w * this.wr] }
+				]
+			};
+
+			// 2. Each tree gets its own L-system state
+			this.axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
+			this.sentence = this.axiom;
+			this.generation = 0;
+			this.maxWidth = this.axiom[0].params[1]; // Max width is the starting width
+
+		} else if (this.type === 'ternary') {
+			// --- Setup for Ternary model (from Figure 2.8) ---
+			// We will define these parameters and rules in the next subtask
+			
+			// Placeholder values for now
+			this.rules = {};
+			this.axiom = []; 
+			this.sentence = this.axiom;
+			this.generation = 0;
+			this.maxWidth = 1; 
+		}
+		// --- End of Type-based setup ---
+
+
 		// Build the initial geometry (Gen 0)
 		this.generateTreeGeometry();
 	}
@@ -250,7 +268,7 @@ function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
 	
 	// Create our tree and store it in the global variable
-	trees.push(new Tree(0, 0, 0,
+	trees.push(new Tree(0, 0, 0, "honda",
 		{
 			r1: 0.9,   // Shorter trunk segments
 			r2: 0.6,   // Longer main branches
@@ -260,7 +278,7 @@ function setup() {
 			wr: 0.707    // Branches get thinner slightly slower
 		}
 	));
-	trees.push(new Tree(300, 0, 0, 
+	trees.push(new Tree(300, 0, 0, "honda",
 		{
 			r1: 0.9,   // Shorter trunk segments
 			r2: 0.9,   // Longer main branches
@@ -270,7 +288,7 @@ function setup() {
 			wr: 0.707    // Branches get thinner slightly slower
 		}
 	));
-	trees.push(new Tree(600, 0, 0,
+	trees.push(new Tree(600, 0, 0, "honda",
 		{
 			r1: 0.9,   // Shorter trunk segments
 			r2: 0.8,   // Longer main branches
@@ -280,7 +298,7 @@ function setup() {
 			wr: 0.707    // Branches get thinner slightly slower
 		}
 	));
-	trees.push(new Tree(900, 0, 0, 
+	trees.push(new Tree(900, 0, 0, "honda",
 		{
 			r1: 0.9,   // Shorter trunk segments
 			r2: 0.7,   // Longer main branches
