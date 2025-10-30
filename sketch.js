@@ -153,6 +153,7 @@ class Tree {
 	}
 
 	// --- MOVED FUNCTION ---
+// --- MOVED FUNCTION ---
 	generateTreeGeometry() {
 		// Use 'this' to access class properties
 		this.treeGeometry = new p5.Geometry(); // Use this.treeGeometry
@@ -167,6 +168,17 @@ class Tree {
 		// Use this.maxWidth
 		const maxWidth = this.maxWidth;
 		let currentWidth = this.maxWidth; 
+		
+		// Check the axiom to set the initial width for ternary trees
+		// This handles the first generation (Gen 0) correctly
+		if (this.type === 'ternary' && this.generation === 0) {
+			for(const module of this.axiom) {
+				if(module.char === '!') {
+					currentWidth = module.params[0];
+					break;
+				}
+			}
+		}
 		
 		let heading = createVector(0, 0, -1);
 		let up = createVector(0, 1, 0);
@@ -218,12 +230,23 @@ class Tree {
 					const startPos = currentPosition.copy();
 					const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
 					
+					// --- MODIFIED CODE START ---
+					// Map color based on current width relative to max width
 					const colorT_Start = map(currentWidth, 0, maxWidth, 1, 0);
 					const colorStart = lerpColor(brownColor, newGrowthColor, colorT_Start);
 					
-					const nextWidth = currentWidth * this.wr;
+					// For ternary trees, segments are uniform width (no taper)
+					// For honda trees, they taper by this.wr
+					let nextWidth;
+					if (this.type === 'honda') {
+						nextWidth = currentWidth * this.wr;
+					} else { // 'ternary' or other
+						nextWidth = currentWidth; // No taper
+					}
+					
 					const colorT_End = map(nextWidth, 0, maxWidth, 1, 0);
 					const colorEnd = lerpColor(brownColor, newGrowthColor, colorT_End);
+					// --- MODIFIED CODE END ---
 
 					// Add cylinder to THIS tree's geometry
 					addCylinder(this.treeGeometry, startPos, endPos, radius, 6, colorStart, colorEnd);
