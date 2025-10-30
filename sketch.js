@@ -110,7 +110,6 @@ class Tree {
 		this.generateTreeGeometry();
 	}
 	
-	// --- MOVED FUNCTION ---
 	generate() {
 		// Use 'this' to access class properties
 		this.generation++;
@@ -128,6 +127,26 @@ class Tree {
 		this.sentence = nextSentence; // Use this.sentence
 
 		console.log(`Generation ${this.generation}:`, this.sentence); 
+		
+		// --- NEW CODE START ---
+		// For ternary trees, we must find the new maximum width after generating
+		if (this.type === 'ternary') {
+			let currentMax = 0; // Find the max width in the *new* sentence
+			for (const module of this.sentence) {
+				if (module.char === '!') {
+					if (module.params[0] > currentMax) {
+						currentMax = module.params[0];
+					}
+				}
+			}
+			
+			// Update the tree's maxWidth property so the color gradient is correct
+			// We only update if we found a width, and it's larger than the previous max
+			if (currentMax > this.maxWidth) {
+				this.maxWidth = currentMax; 
+			}
+		}
+		// --- NEW CODE END ---
 		
 		// Re-build THIS tree's geometry
 		this.generateTreeGeometry(); // Use this.generateTreeGeometry
