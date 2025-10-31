@@ -433,8 +433,11 @@ function setup() {
 }
 
 
-function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, colorEnd) {
-	// ... (function is unchanged) ...
+// --- NEW, REFACTORED addCylinder ---
+// This version ONLY handles geometry (vertices and faces).
+// All color parameters and vertexColor logic have been removed.
+
+function addCylinder(geom, startPos, endPos, radius, detail = 6) {
 	// --- 1. Calculate Orientation Vectors ---
 	const axis = p5.Vector.sub(endPos, startPos);
 	axis.normalize();
@@ -466,9 +469,6 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 		const topVertex = p5.Vector.add(endPos, pointOffset);
 		geom.vertices.push(topVertex);
 
-		// Apply start color to bottom vertex, end color to top vertex
-		geom.vertexColors.push(...colorStart._array); 
-		geom.vertexColors.push(...colorEnd._array); 
 	}
     
 	// --- 3. Add Side Faces ---
@@ -490,9 +490,6 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 	const topCapCenterIndex = geom.vertices.length;
 	geom.vertices.push(endPos.copy());
     
-	// Apply start color to bottom cap, end color to top cap
-	geom.vertexColors.push(...colorStart._array);
-	geom.vertexColors.push(...colorEnd._array);
 
 	for (let i = 0; i < detail; i++) {
 		const next_i = (i + 1) % detail;
@@ -507,7 +504,6 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6, colorStart, col
 		geom.faces.push([topCapCenterIndex, i_top_current, i_top_next]);
 	}
 }
-
 
 
 function draw() {
