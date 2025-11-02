@@ -420,11 +420,11 @@ function setup() {
 }
 
 
-// --- NEW, REFACTORED addCylinder ---
-// This version ONLY handles geometry (vertices and faces).
-// All color parameters and vertexColor logic have been removed.
 
-function addCylinder(geom, startPos, endPos, radius, detail = 6) {
+// --- MODIFIED addCylinder function ---
+// This version uses radius1 for the start and radius2 for the end.
+
+function addCylinder(geom, startPos, endPos, radius1, radius2, detail = 6) {
 	// --- 1. Calculate Orientation Vectors ---
 	const axis = p5.Vector.sub(endPos, startPos);
 	axis.normalize();
@@ -443,22 +443,27 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6) {
 	for (let i = 0; i < detail; i++) {
 		const angle = (i / detail) * TWO_PI;
         
-		const x = cos(angle) * radius;
-		const y = sin(angle) * radius;
+		const x = cos(angle); // We'll multiply by radius inside
+		const y = sin(angle); // We'll multiply by radius inside
         
-		const offsetTerm1 = ortho1.copy().mult(x);
-		const offsetTerm2 = ortho2.copy().mult(y);
-		const pointOffset = p5.Vector.add(offsetTerm1, offsetTerm2);
+		// --- MODIFIED: Use radius1 for bottom ---
+		const offsetTerm1_bottom = ortho1.copy().mult(x * radius1);
+		const offsetTerm2_bottom = ortho2.copy().mult(y * radius1);
+		const pointOffset_bottom = p5.Vector.add(offsetTerm1_bottom, offsetTerm2_bottom);
         
-		const bottomVertex = p5.Vector.add(startPos, pointOffset);
+		const bottomVertex = p5.Vector.add(startPos, pointOffset_bottom);
 		geom.vertices.push(bottomVertex);
         
-		const topVertex = p5.Vector.add(endPos, pointOffset);
-		geom.vertices.push(topVertex);
+		// --- MODIFIED: Use radius2 for top ---
+		const offsetTerm1_top = ortho1.copy().mult(x * radius2);
+		const offsetTerm2_top = ortho2.copy().mult(y * radius2);
+		const pointOffset_top = p5.Vector.add(offsetTerm1_top, offsetTerm2_top);
 
+		const topVertex = p5.Vector.add(endPos, pointOffset_top);
+		geom.vertices.push(topVertex);
 	}
     
-	// --- 3. Add Side Faces ---
+	// --- 3. Add Side Faces (No change needed here) ---
 	for (let i = 0; i < detail; i++) {
 		const i0 = baseIndex + i * 2;
 		const i1 = baseIndex + i * 2 + 1;
@@ -470,7 +475,7 @@ function addCylinder(geom, startPos, endPos, radius, detail = 6) {
 		geom.faces.push([i0, i2, i3]);
 	}
 
-	// --- 4. Add Cap Faces ---
+	// --- 4. Add Cap Faces (No change needed here) ---
 	const bottomCapCenterIndex = geom.vertices.length;
 	geom.vertices.push(startPos.copy());
     
