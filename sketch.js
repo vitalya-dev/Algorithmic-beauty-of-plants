@@ -128,7 +128,7 @@ class Tree {
 		this.generateTreeGeometry(); // Use this.generateTreeGeometry
 	}
 
-	// --- MOVED FUNCTION ---
+
 	generateTreeGeometry() {
 		// Use 'this' to access class properties
 		this.treeGeometry = new p5.Geometry(); // Use this.treeGeometry
@@ -137,15 +137,16 @@ class Tree {
 		let currentPosition = createVector(0, 0, 0);
 		let stack = [];
 		
-		// currentWidth is initialized to 0 and will be
-		// correctly set by a '!' module before any 'F' is drawn.
-		let currentWidth = 0; 
+		// --- NEW: Tapered width logic ---
+		// Initialize to -1 as a flag, as you suggested.
+		let currentWidth = -1; 
+		let previousWidth = -1;
 		
 		let heading = createVector(0, 0, -1);
 		let up = createVector(0, 1, 0);
 		let left = createVector(-1, 0, 0); 
 		
-		// Rotation functions (these are fine as nested functions)
+		// ... (Rotation functions applyYaw, applyPitch, applyRoll, applyLevelingRoll are unchanged) ...
 		const applyYaw = (angle) => {
 			heading = rotateAroundAxis(heading, up, angle);
 			left = rotateAroundAxis(left, up, angle);
@@ -158,21 +159,13 @@ class Tree {
 			left = rotateAroundAxis(left, heading, angle);
 			up = rotateAroundAxis(up, heading, angle);
 		};
-
 		const applyLevelingRoll = () => {
 			const g = createVector(0, 0, -1).normalize();
-
-			// Compute new left axis as g × H (perpendicular to gravity and heading)
 			let newLeft = p5.Vector.cross(g, heading).normalize();
-
-			// If heading ~ // to g, fall back to current left to avoid NaNs
 			if (newLeft.magSq() < 1e-8) {
-				return; // no change; heading nearly vertical
+				return;
 			}
-
-			// Then new up is H × newLeft
 			let newUp = p5.Vector.cross(heading, newLeft).normalize();
-
 			left = newLeft;
 			up = newUp;
 		};
@@ -181,20 +174,39 @@ class Tree {
 		for (const module of this.sentence) {
 			switch (module.char) {
 				case '!':
-					currentWidth = module.params[0];
+					// --- MODIFIED: Implement your logic ---
+					const newWidth = module.params[0];
+					if (currentWidth === -1) {
+						// This is the first width module encountered.
+						currentWidth = newWidth;
+						previousWidth = newWidth;
+					} else {
+						// This is a subsequent width update.
+						previousWidth = currentWidth; // The "start" width is the previous "end" width
+						currentWidth = newWidth;   // The "end" width is the new one
+					}
+					console.log(previousWidth, currentWidth);
 					break;
 				
 				case 'F':
 					const len = module.params[0];
-					const radius = currentWidth / 2;
+					
+					// --- MODIFIED: Use two radii ---
+					// Default to 0 if width hasn't been set (safety)
+					const radius1 = (previousWidth === -1) ? 0 : previousWidth / 2;
+					const radius2 = (currentWidth === -1) ? 0 : currentWidth / 2;
 					
 					const startPos = currentPosition.copy();
 					const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
 
-					// Call our "color-blind" cylinder function
-					addCylinder(this.treeGeometry, startPos, endPos, radius, 6);
+					// Call our modified cylinder function with two radii
+					addCylinder(this.treeGeometry, startPos, endPos, radius1, radius2, 6);
 					
 					currentPosition = endPos;
+
+					// --- NEW: Update previousWidth for next segment ---
+					// This ensures the next 'F' segment connects to this one.
+					previousWidth = currentWidth;
 					break;
 				
 				// ... (cases '+', '-', '&', '^', '/', '\', '$' are unchanged) ...
@@ -227,7 +239,8 @@ class Tree {
 						heading: heading.copy(),
 						up: up.copy(),
 						left: left.copy(),
-						width: currentWidth 
+						width: currentWidth, // <-- MODIFIED: Store currentWidth
+						prevWidth: previousWidth // <-- NEW: Store previousWidth
 					});
 					break;
 				case ']':
@@ -236,15 +249,15 @@ class Tree {
 					heading = state.heading;
 					up = state.up;
 					left = state.left;
-					currentWidth = state.width;
+					currentWidth = state.width; // <-- MODIFIED: Restore currentWidth
+					previousWidth = state.prevWidth; // <-- NEW: Restore previousWidth
 					break;
 			}
 		}
 		
-		// --- NEW POST-PROCESS COLORING CODE START ---
+		// ... (The entire "NEW POST-PROCESS COLORING CODE" section is unchanged) ...
 		
 		// 1. Define the colors for our gradient
-		// (Remember our tree grows "down" in local Z-space)
 		const baseColor = color(69, 36, 21); // Brown for the base (z=0)
 		const tipColor = color(238, 142, 4); // Light green for the tips (negative z)
 
@@ -252,13 +265,10 @@ class Tree {
 		let minZ = 0;
 		let maxZ = 0;
 		
-		// Safety check: only run if we have vertices
 		if (this.treeGeometry.vertices.length > 0) {
-			// Initialize with the first vertex
 			minZ = this.treeGeometry.vertices[0].z;
 			maxZ = this.treeGeometry.vertices[0].z;
 			
-			// Find the actual min and max Z
 			for (const v of this.treeGeometry.vertices) {
 				if (v.z < minZ) minZ = v.z;
 				if (v.z > maxZ) maxZ = v.z;
@@ -266,32 +276,21 @@ class Tree {
 		}
 
 		// 3. Apply colors based on height
-		// We clear any existing colors first (good practice)
 		this.treeGeometry.vertexColors = []; 
 		
 		for (const v of this.treeGeometry.vertices) {
-			// Map the vertex's z-position to a 0-1 range
-			// Note: We map minZ -> 1 and maxZ -> 0, but since minZ is the
-			// "highest" tip (most negative), this correctly maps:
-			// Base (z=0) -> 0
-			// Tip (z=minZ) -> 1
 			const t = map(v.z, maxZ, minZ, 0, .5);
-			
-			// Lerp the color and push it to the array
 			const vertexColor = lerpColor(baseColor, tipColor, t);
 			this.treeGeometry.vertexColors.push(...vertexColor._array);
 		}
 		
-		// --- NEW POST-PROCESS COLORING CODE END ---
-
-
 		// Recalculate normals for THIS tree's geometry
 		this.treeGeometry.computeNormals();
 	}
 
 	draw() {
 		//Position tree's button.
-		let screenPos = worldToScreen(this.basePosition);
+		let screenPos = worldToScreen(this.basePosition.x, this.basePosition.y, this.basePosition.z);
 		this.button.position(screenPos.x - this.button.width / 2, screenPos.y + 10);
 		
 
