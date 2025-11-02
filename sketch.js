@@ -137,6 +137,8 @@ class Tree {
 		let currentPosition = createVector(0, 0, 0);
 		let stack = [];
 		
+		// currentWidth is initialized to 0 and will be
+		// correctly set by a '!' module before any 'F' is drawn.
 		let currentWidth = 0; 
 		
 		let heading = createVector(0, 0, -1);
@@ -189,6 +191,7 @@ class Tree {
 					const startPos = currentPosition.copy();
 					const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
 
+					// Call our "color-blind" cylinder function
 					addCylinder(this.treeGeometry, startPos, endPos, radius, 6);
 					
 					currentPosition = endPos;
@@ -237,6 +240,51 @@ class Tree {
 					break;
 			}
 		}
+		
+		// --- NEW POST-PROCESS COLORING CODE START ---
+		
+		// 1. Define the colors for our gradient
+		// (Remember our tree grows "down" in local Z-space)
+		const baseColor = color(69, 36, 21); // Brown for the base (z=0)
+		const tipColor = color(238, 142, 4); // Light green for the tips (negative z)
+
+		// 2. Find the min and max Z-values (height)
+		let minZ = 0;
+		let maxZ = 0;
+		
+		// Safety check: only run if we have vertices
+		if (this.treeGeometry.vertices.length > 0) {
+			// Initialize with the first vertex
+			minZ = this.treeGeometry.vertices[0].z;
+			maxZ = this.treeGeometry.vertices[0].z;
+			
+			// Find the actual min and max Z
+			for (const v of this.treeGeometry.vertices) {
+				if (v.z < minZ) minZ = v.z;
+				if (v.z > maxZ) maxZ = v.z;
+			}
+		}
+
+		// 3. Apply colors based on height
+		// We clear any existing colors first (good practice)
+		this.treeGeometry.vertexColors = []; 
+		
+		for (const v of this.treeGeometry.vertices) {
+			// Map the vertex's z-position to a 0-1 range
+			// Note: We map minZ -> 1 and maxZ -> 0, but since minZ is the
+			// "highest" tip (most negative), this correctly maps:
+			// Base (z=0) -> 0
+			// Tip (z=minZ) -> 1
+			const t = map(v.z, maxZ, minZ, 0, .5);
+			
+			// Lerp the color and push it to the array
+			const vertexColor = lerpColor(baseColor, tipColor, t);
+			this.treeGeometry.vertexColors.push(...vertexColor._array);
+		}
+		
+		// --- NEW POST-PROCESS COLORING CODE END ---
+
+
 		// Recalculate normals for THIS tree's geometry
 		this.treeGeometry.computeNormals();
 	}
