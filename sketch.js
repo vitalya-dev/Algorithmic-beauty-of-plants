@@ -51,8 +51,6 @@ class Tree {
 			this.axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
 			this.sentence = this.axiom;
 			this.generation = 0;
-			this.maxWidth = this.axiom[0].params[1]; // Max width is the starting width
-
 		} else if (this.type === 'ternary') {
 			// --- Setup for Ternary model (from Figure 2.8) ---
 			// Set parameters from the 'params' object,
@@ -100,8 +98,6 @@ class Tree {
 			
 			this.sentence = this.axiom;
 			this.generation = 0;
-			// The max width for color mapping is the initial width of the trunk
-			this.maxWidth = initialWidth;
 		}
 		// --- End of Type-based setup ---
 
@@ -128,32 +124,11 @@ class Tree {
 
 		console.log(`Generation ${this.generation}:`, this.sentence); 
 		
-		// --- NEW CODE START ---
-		// For ternary trees, we must find the new maximum width after generating
-		if (this.type === 'ternary') {
-			let currentMax = 0; // Find the max width in the *new* sentence
-			for (const module of this.sentence) {
-				if (module.char === '!') {
-					if (module.params[0] > currentMax) {
-						currentMax = module.params[0];
-					}
-				}
-			}
-			
-			// Update the tree's maxWidth property so the color gradient is correct
-			// We only update if we found a width, and it's larger than the previous max
-			if (currentMax > this.maxWidth) {
-				this.maxWidth = currentMax; 
-			}
-		}
-		// --- NEW CODE END ---
-		
 		// Re-build THIS tree's geometry
 		this.generateTreeGeometry(); // Use this.generateTreeGeometry
 	}
 
 	// --- MOVED FUNCTION ---
-// --- MOVED FUNCTION ---
 	generateTreeGeometry() {
 		// Use 'this' to access class properties
 		this.treeGeometry = new p5.Geometry(); // Use this.treeGeometry
@@ -162,23 +137,7 @@ class Tree {
 		let currentPosition = createVector(0, 0, 0);
 		let stack = [];
 		
-		const brownColor = color(139, 69, 19);
-		const newGrowthColor = color(210, 180, 140);
-		
-		// Use this.maxWidth
-		const maxWidth = this.maxWidth;
-		let currentWidth = this.maxWidth; 
-		
-		// Check the axiom to set the initial width for ternary trees
-		// This handles the first generation (Gen 0) correctly
-		if (this.type === 'ternary' && this.generation === 0) {
-			for(const module of this.axiom) {
-				if(module.char === '!') {
-					currentWidth = module.params[0];
-					break;
-				}
-			}
-		}
+		let currentWidth = 0; 
 		
 		let heading = createVector(0, 0, -1);
 		let up = createVector(0, 1, 0);
@@ -229,27 +188,8 @@ class Tree {
 					
 					const startPos = currentPosition.copy();
 					const endPos = p5.Vector.add(startPos, heading.copy().mult(len));
-					
-					// --- MODIFIED CODE START ---
-					// Map color based on current width relative to max width
-					const colorT_Start = map(currentWidth, 0, maxWidth, 1, 0);
-					const colorStart = lerpColor(brownColor, newGrowthColor, colorT_Start);
-					
-					// For ternary trees, segments are uniform width (no taper)
-					// For honda trees, they taper by this.wr
-					let nextWidth;
-					if (this.type === 'honda') {
-						nextWidth = currentWidth * this.wr;
-					} else { // 'ternary' or other
-						nextWidth = currentWidth; // No taper
-					}
-					
-					const colorT_End = map(nextWidth, 0, maxWidth, 1, 0);
-					const colorEnd = lerpColor(brownColor, newGrowthColor, colorT_End);
-					// --- MODIFIED CODE END ---
 
-					// Add cylinder to THIS tree's geometry
-					addCylinder(this.treeGeometry, startPos, endPos, radius, 6, colorStart, colorEnd);
+					addCylinder(this.treeGeometry, startPos, endPos, radius, 6);
 					
 					currentPosition = endPos;
 					break;
@@ -297,7 +237,6 @@ class Tree {
 					break;
 			}
 		}
-		
 		// Recalculate normals for THIS tree's geometry
 		this.treeGeometry.computeNormals();
 	}
