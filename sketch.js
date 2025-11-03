@@ -215,6 +215,29 @@ class Tree {
 					// --- NEW: Update previousWidth for next segment ---
 					// This ensures the next 'F' segment connects to this one.
 					previousWidth = currentWidth;
+					// --- NEW: Apply Tropism ---
+					// This implements the bending logic from Figure 2.9 
+					if (this.type === 'ternary' && this.e > 0) {
+						const H = heading; // Current heading vector
+
+						// Calculate rotation axis: H x T
+						const axis = p5.Vector.cross(H, this.T);
+						const mag = axis.mag();
+
+						// Only apply if H and T are not parallel
+						if (mag > 1e-8) {
+							// Calculate angle: e * |H x T| [cite: 19, 66]
+							const angle = this.e * mag;
+
+							// Normalize the axis vector for rotateAroundAxis
+							axis.mult(1.0 / mag); 
+
+							// Apply the rotation to all orientation vectors
+							heading = rotateAroundAxis(heading, axis, angle);
+							up = rotateAroundAxis(up, axis, angle);
+							left = rotateAroundAxis(left, axis, angle);
+						}
+					}
 					break;
 				
 				// ... (cases '+', '-', '&', '^', '/', '\', '$' are unchanged) ...
