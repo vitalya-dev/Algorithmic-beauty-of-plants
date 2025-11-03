@@ -60,6 +60,14 @@ class Tree {
 			this.a = params.a || 18.95;     // branching angle
 			this.lr = params.lr || 1.109;   // elongation rate
 			this.vr = params.vr || 1.732;   // width increase rate [cite: 55]
+			// --- NEW: Tropism parameters (from Table 2.3) ---
+			// We map the PDF's (x, y, z) vector to our p5.js object's
+			// (x, z, -y) coordinate space.
+			// The default (0, -1, 0) becomes (0, 0, 1), our "up" vector.
+			const defaultT = createVector(0, 0, 1);
+			this.T = params.T || defaultT;
+			this.T.normalize(); // We only need the direction
+			this.e = params.e || 0; // Susceptibility to bending
 
 			// Note: The 'A' rule is parameter-less
 			this.rules = {
