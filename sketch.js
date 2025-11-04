@@ -124,7 +124,6 @@ class Tree {
 						previousWidth = currentWidth;
 						currentWidth = newWidth;
 					}
-					console.log(previousWidth, currentWidth);
 					break;
 
 				case 'F': // Draw Forward
@@ -317,12 +316,6 @@ function draw() {
 	for (let tree of trees) {
 		tree.draw();
 	}
-
-	// --- Draw World Axes ---
-	strokeWeight(3);
-	stroke(255, 0, 0); line(0, 0, 0, 50, 0, 0); // +X (Red)
-	stroke(0, 255, 0); line(0, 0, 0, 0, 50, 0); // +Y (Green)
-	stroke(0, 0, 255); line(0, 0, 0, 0, 0, 50); // +Z (Blue)
 }
 
 function windowResized() {
