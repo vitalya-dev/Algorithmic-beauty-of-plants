@@ -11,7 +11,7 @@ class Tree {
 		this.type = type;
 
 		this.treeGeometry = null;
-		this.button = createButton(`Generate ${this.type}`);
+		this.button = createButton(`Generate`);
 		this.button.mousePressed(() => this.generate());
 
 		if (this.type === 'honda') {
