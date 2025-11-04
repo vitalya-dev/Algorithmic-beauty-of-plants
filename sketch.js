@@ -25,6 +25,10 @@ class Tree {
 			this.a2 = params.a2 || 45;
 			this.s = params.s || 137.5; // 's' is 's' (spread angle)
 			this.wr = params.wr || 0.707;
+			const defaultT = createVector(0, 0, 1);
+			this.T = params.T || defaultT;
+			this.T.normalize(); // We only need the direction
+			this.e = params.e || 0; // Susceptibility to bending
 
 			// This lets the rules access this.r1, this.a0, etc.
 			this.rules = {
@@ -51,63 +55,7 @@ class Tree {
 			this.axiom = [{ char: 'A', params: [100, 10] }]; // Start with length 100, width 10
 			this.sentence = this.axiom;
 			this.generation = 0;
-		} else if (this.type === 'ternary') {
-			// --- Setup for Ternary model (from Figure 2.8) ---
-			// Set parameters from the 'params' object,
-			// using defaults from Figure 2.8a / Table 2.3 [cite: 54, 55, 71]
-			this.d1 = params.d1 || 94.74;   // divergence angle 1
-			this.d2 = params.d2 || 132.63;  // divergence angle 2
-			this.a = params.a || 18.95;     // branching angle
-			this.lr = params.lr || 1.109;   // elongation rate
-			this.vr = params.vr || 1.732;   // width increase rate [cite: 55]
-			// --- NEW: Tropism parameters (from Table 2.3) ---
-			// We map the PDF's (x, y, z) vector to our p5.js object's
-			// (x, z, -y) coordinate space.
-			// The default (0, -1, 0) becomes (0, 0, 1), our "up" vector.
-			const defaultT = createVector(0, 0, 1);
-			this.T = params.T || defaultT;
-			this.T.normalize(); // We only need the direction
-			this.e = params.e || 0; // Susceptibility to bending
-
-			// Note: The 'A' rule is parameter-less
-			this.rules = {
-				// p1: A -> !(vr) F(50) [branch1] / (d1) [branch2] / (d2) [branch3] 
-				A: () => [
-					{ char: '!', params: [this.vr] }, { char: 'F', params: [50] },
-					{ char: '[' }, { char: '&', params: [this.a] }, { char: 'F', params: [50] }, { char: 'A', params: [] }, { char: ']' },
-					{ char: '/', params: [this.d1] },
-					{ char: '[' }, { char: '&', params: [this.a] }, { char: 'F', params: [50] }, { char: 'A', params: [] }, { char: ']' },
-					{ char: '/', params: [this.d2] },
-					{ char: '[' }, { char: '&', params: [this.a] }, { char: 'F', params: [50] }, { char: 'A', params: [] }, { char: ']' }
-				],
-				
-				// p2: F(l) -> F(l * lr) 
-				F: (l) => [
-					{ char: 'F', params: [l * this.lr] }
-				],
-				
-				// p3: !(w) -> !(w * vr) 
-				'!': (w) => [
-					{ char: '!', params: [w * this.vr] }
-				]
-			};
-
-			// Axiom (w) from Figure 2.8: !(1)F(200)/(45)A 
-			const initialWidth = 1;
-			const initialLength = 200;
-			const initialAngle = 45;
-
-			this.axiom = [
-				{ char: '!', params: [initialWidth] },
-				{ char: 'F', params: [initialLength] },
-				{ char: '/', params: [initialAngle] },
-				{ char: 'A', params: [] }
-			];
-			
-			this.sentence = this.axiom;
-			this.generation = 0;
 		}
-		// --- End of Type-based setup ---
 
 
 		// Build the initial geometry (Gen 0)
@@ -216,26 +164,29 @@ class Tree {
 					// This ensures the next 'F' segment connects to this one.
 					previousWidth = currentWidth;
 					// --- NEW: Apply Tropism ---
-					// This implements the bending logic from Figure 2.9 
-					if (this.type === 'ternary' && this.e > 0) {
+					// This implements the bending logic from Figure 2.9
+					if (this.e > 0) {
 						const H = heading; // Current heading vector
-
+	
 						// Calculate rotation axis: H x T
 						const axis = p5.Vector.cross(H, this.T);
-						const mag = axis.mag();
+						const magn = axis.mag();
 
 						// Only apply if H and T are not parallel
-						if (mag > 1e-8) {
-							// Calculate angle: e * |H x T| [cite: 19, 66]
-							const angle = this.e * mag;
+						if (magn > 1e-8) {
+							// Calculate angle (in radians): e * |H x T|
+							const angleInRadians = this.e * magn;
+		
+							// Convert to degrees for our rotateAroundAxis function
+							const angleInDegrees = degrees(angleInRadians);
 
 							// Normalize the axis vector for rotateAroundAxis
-							axis.mult(1.0 / mag); 
-
+							axis.mult(1.0 / magn);
+		
 							// Apply the rotation to all orientation vectors
-							heading = rotateAroundAxis(heading, axis, angle);
-							up = rotateAroundAxis(up, axis, angle);
-							left = rotateAroundAxis(left, axis, angle);
+							heading = rotateAroundAxis(heading, axis, angleInDegrees);
+							up = rotateAroundAxis(up, axis, angleInDegrees);
+							left = rotateAroundAxis(left, axis, angleInDegrees);
 						}
 					}
 					break;
@@ -366,85 +317,44 @@ function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
 	
 	// // Create our tree and store it in the global variable
-	// trees.push(new Tree(0, 0, 0, "honda",
-	// 	{
-	// 		r1: 0.9,   // Shorter trunk segments
-	// 		r2: 0.6,   // Longer main branches
-	// 		a0: 45,    // Narrower trunk branching
-	// 		a2: 45,    // Wider lateral branching
-	// 		s: 137.5,     // Different branching pattern (90 degrees)
-	// 		wr: 0.707    // Branches get thinner slightly slower
-	// 	}
-	// ));
-	// trees.push(new Tree(300, 0, 0, "honda",
-	// 	{
-	// 		r1: 0.9,   // Shorter trunk segments
-	// 		r2: 0.9,   // Longer main branches
-	// 		a0: 45,    // Narrower trunk branching
-	// 		a2: 45,    // Wider lateral branching
-	// 		s: 137.5,     // Different branching pattern (90 degrees)
-	// 		wr: 0.707    // Branches get thinner slightly slower
-	// 	}
-	// ));
-	// trees.push(new Tree(600, 0, 0, "honda",
-	// 	{
-	// 		r1: 0.9,   // Shorter trunk segments
-	// 		r2: 0.8,   // Longer main branches
-	// 		a0: 45,    // Narrower trunk branching
-	// 		a2: 45,    // Wider lateral branching
-	// 		s: 137.5,     // Different branching pattern (90 degrees)
-	// 		wr: 0.707    // Branches get thinner slightly slower
-	// 	}
-	// ));
-	// trees.push(new Tree(900, 0, 0, "honda",
-	// 	{
-	// 		r1: 0.9,   // Shorter trunk segments
-	// 		r2: 0.7,   // Longer main branches
-	// 		a0: 30,    // Narrower trunk branching
-	// 		a2: -30,    // Wider lateral branching
-	// 		s: 137.5,     // Different branching pattern (90 degrees)
-	// 		wr: 0.707    // Branches get thinner slightly slower
-	// 	}
-	// ));
-
-
-	// Tree 5 (Ternary, Fig 2.8a) 
-	trees.push(new Tree(0, 0, 600, 'ternary',
+	trees.push(new Tree(0, 0, 0, "honda",
 		{
-			d1: 94.74,
-			d2: 132.63,
-			a: 18.95,
-			lr: 1.109
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.6,   // Longer main branches
+			a0: 45,    // Narrower trunk branching
+			a2: 45,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
 		}
 	));
-	
-	// Tree 6 (Ternary, Fig 2.8b) 
-	trees.push(new Tree(300, 0, 600, 'ternary',
+	trees.push(new Tree(300, 0, 0, "honda",
 		{
-			d1: 137.50,
-			d2: 137.50,
-			a: 18.95,
-			lr: 1.109
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.9,   // Longer main branches
+			a0: 45,    // Narrower trunk branching
+			a2: 45,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
 		}
 	));
-	
-	// Tree 7 (Ternary, Fig 2.8c) 
-	trees.push(new Tree(600, 0, 600, 'ternary',
+	trees.push(new Tree(600, 0, 0, "honda",
 		{
-			d1: 112.50,
-			d2: 157.50,
-			a: 22.50,
-			lr: 1.790
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.8,   // Longer main branches
+			a0: 45,    // Narrower trunk branching
+			a2: 45,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
 		}
 	));
-	
-	// Tree 8 (Ternary, Fig 2.8d) 
-	trees.push(new Tree(900, 0, 600, 'ternary',
+	trees.push(new Tree(900, 0, 0, "honda",
 		{
-			d1: 180.00,
-			d2: 252.00,
-			a: 36.00,
-			lr: 1.070
+			r1: 0.9,   // Shorter trunk segments
+			r2: 0.7,   // Longer main branches
+			a0: 30,    // Narrower trunk branching
+			a2: -30,    // Wider lateral branching
+			s: 137.5,     // Different branching pattern (90 degrees)
+			wr: 0.707    // Branches get thinner slightly slower
 		}
 	));
 }
@@ -548,6 +458,11 @@ function draw() {
 	for (let tree of trees) {
 		tree.draw();
 	}
+
+	strokeWeight(3);
+	stroke(255, 0, 0); line(0, 0, 0, 50, 0, 0); // +X
+	stroke(0, 255, 0); line(0, 0, 0, 0, 50, 0); // +Y
+	stroke(0, 0, 255); line(0, 0, 0, 0, 0, 50); // +Z
 }
 
 
